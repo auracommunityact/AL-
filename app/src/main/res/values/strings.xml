@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Aura Learning</string>
+    <string name="attribution_ads_label">Google AdMob Services</string>
+    <string name="attribution_auth_label">Google Sign-In Services</string>
+    <string name="attribution_location_label">Google Location Services</string>
+</resources>

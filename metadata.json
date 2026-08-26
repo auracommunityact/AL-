@@ -1,0 +1,10 @@
+{
+  "name": "Aura Learning",
+  "description": "A modern educational app offering students easy access to books, video lessons, and resources across grades 1 to 12.",
+  "requestFramePermissions": [
+    "file_system_access"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
