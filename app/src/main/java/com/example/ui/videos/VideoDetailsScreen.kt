@@ -452,6 +452,11 @@ fun VideoDetailsScreen(
                 }
             }
 
+            // Note Taking Section Using DataStore
+            item {
+                com.example.ui.notes.LessonNoteSection(lessonId = "lesson_$videoId")
+            }
+
             // 3. Chapter Parts if multiple
             val chapterVideos = allVideos.filter {
                 it.chapter.equals(video.chapter, ignoreCase = true) &&
