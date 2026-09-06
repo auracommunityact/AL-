@@ -4,4 +4,9 @@
     <string name="attribution_ads_label">Google AdMob Services</string>
     <string name="attribution_auth_label">Google Sign-In Services</string>
     <string name="attribution_location_label">Google Location Services</string>
+    
+    <!-- Dummy Firebase IDs to silence Missing google_app_id errors -->
+    <string name="google_app_id" translatable="false">1:123456789012:android:abcdef0123456789abcdef</string>
+    <string name="gcm_defaultSenderId" translatable="false">123456789012</string>
+    <string name="project_id" translatable="false">dummy-project</string>
 </resources>
