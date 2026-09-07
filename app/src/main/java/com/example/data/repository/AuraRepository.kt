@@ -490,8 +490,7 @@ class AuraRepository {
         return try {
             client.postgrest["question_papers"].select().decodeList<QuestionPaper>()
         } catch (e: Exception) {
-            e.printStackTrace()
-            android.util.Log.e("AuraRepository", "Error fetching question papers: ${e.message}", e)
+            android.util.Log.w("AuraRepository", "Table 'question_papers' might not exist yet: ${e.message}")
             emptyList()
         }
     }
@@ -541,8 +540,7 @@ class AuraRepository {
             combined
         } catch (e: Exception) {
             println("Error fetching home sections, returning hardcoded defaults: ${e.message}")
-            android.util.Log.e("AuraRepository", "Error fetching dynamic sections, returning defaults", e)
-            e.printStackTrace()
+            android.util.Log.w("AuraRepository", "Could not fetch dynamic sections (probably offline or table missing), returning defaults: ${e.message}")
             defaultSections
         }
     }

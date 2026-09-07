@@ -22,6 +22,19 @@ object SupabaseService {
         val key = try { BuildConfig.SUPABASE_ANON_KEY } catch (e: Throwable) { "" }
             .ifBlank { "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4b3FmbHJxcHdseXRoZ3FtanRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxODIxMTQsImV4cCI6MjA5Nzc1ODExNH0.cJ3hIsEyRtH1m_nmyzwjrdvzsbGIKIiChnmXAjgFRfo" }
 
+        val keyPreview = when {
+            key.isBlank() -> "MISSING"
+            key.endsWith(".placeholder") -> "PLACEHOLDER_ERROR"
+            key.startsWith("eyJ") && key.length > 50 -> "VALID_FORMAT (length ${key.length})"
+            else -> "UNKNOWN_FORMAT"
+        }
+        
+        android.util.Log.i("SupabaseDiagnostic", "=== Supabase Configuration Check ===")
+        android.util.Log.i("SupabaseDiagnostic", "URL format valid: ${url.startsWith("https://")}")
+        android.util.Log.i("SupabaseDiagnostic", "Project Reference: ${url.removePrefix("https://").substringBefore(".supabase.co")}")
+        android.util.Log.i("SupabaseDiagnostic", "Key Type Detected: $keyPreview")
+        android.util.Log.i("SupabaseDiagnostic", "=====================================")
+
         createSupabaseClient(
             supabaseUrl = url,
             supabaseKey = key
@@ -33,7 +46,10 @@ object SupabaseService {
             install(Postgrest)
             install(Auth)
             install(Storage)
-            install(Realtime)
+            install(Realtime) {
+                // Prevent aggressive reconnection failures when offline/flaky
+                reconnectDelay = kotlin.time.Duration.parse("3s")
+            }
         }
     }
 
