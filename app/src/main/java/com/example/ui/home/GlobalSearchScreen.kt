@@ -58,6 +58,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.net.URLEncoder
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 data class HistoryItem(
     val query: String,
@@ -70,6 +71,17 @@ data class LocalAiAnswer(
     val relatedBooks: List<Book> = emptyList(),
     val relatedVideos: List<Video> = emptyList(),
 )
+
+fun scorePost(post: com.example.data.models.Post, query: String): Int {
+    if (query.isBlank()) return 0
+    val q = query.lowercase().trim()
+    var score = 0
+    if (post.title.lowercase() == q) score += 100
+    if (post.title.lowercase().startsWith(q)) score += 50
+    if (post.title.lowercase().contains(q)) score += 20
+    if (post.description.lowercase().contains(q)) score += 10
+    return score
+}
 
 fun scoreBook(book: Book, query: String): Int {
     val q = query.lowercase().trim()
@@ -258,6 +270,7 @@ fun GlobalSearchScreen(
     val allVideos by viewModel.allVideos.collectAsState()
     val allQuestionPapers by viewModel.allQuestionPapers.collectAsState()
     val websites by viewModel.allWebsites.collectAsState()
+    val posts by viewModel.posts.collectAsState()
     val userSearchResults by viewModel.userSearchResults.collectAsState()
 
     val dynamicBoards = remember { mutableStateListOf<BoardResult>() }
@@ -277,91 +290,85 @@ fun GlobalSearchScreen(
     var searchQuery by remember { mutableStateOf(initialQuery) }
     var isSearchConfirmed by remember { mutableStateOf(initialQuery.isNotBlank()) }
 
-    // History Preference management
-    val sharedPreferences = remember(context) {
-        context.getSharedPreferences("aura_search_prefs", Context.MODE_PRIVATE)
-    }
+    // History Database management
+    val database = remember(context) { com.example.data.local.PlannerDatabase.getDatabase(context) }
+    val recentSearchDao = remember(database) { database.recentSearchDao() }
+    
     var historyList by remember {
         mutableStateOf<List<HistoryItem>>(emptyList())
     }
 
-    fun loadHistory(): List<HistoryItem> {
-        val json = sharedPreferences.getString("history_list", null)
-        if (json.isNullOrBlank()) {
-            return listOf(
-                HistoryItem("Maths", isPinned = false),
-                HistoryItem("Class 10 Science", isPinned = false),
-                HistoryItem("Kritika", isPinned = false),
-                HistoryItem("Rajasthan Result", isPinned = false),
-                HistoryItem("PDF Reader", isPinned = false)
-            )
-        }
-        return try {
-            val type = object : TypeToken<List<HistoryItem>>() {}.type
-            Gson().fromJson<List<HistoryItem>>(json, type) ?: emptyList()
-        } catch (e: Exception) {
-            emptyList()
+    LaunchedEffect(Unit) {
+        recentSearchDao.getRecentSearches().collect { entities ->
+            val mapped = entities.map { HistoryItem(it.query, it.isPinned, it.timestamp) }
+            // Optional: Populate defaults if empty initially
+            if (mapped.isEmpty()) {
+                val defaults = listOf(
+                    HistoryItem("Maths", isPinned = false),
+                    HistoryItem("Class 10 Science", isPinned = false),
+                    HistoryItem("Kritika", isPinned = false),
+                    HistoryItem("Rajasthan Result", isPinned = false),
+                    HistoryItem("PDF Reader", isPinned = false)
+                )
+                defaults.forEach { 
+                    recentSearchDao.insertSearch(com.example.data.local.RecentSearchEntity(it.query, it.isPinned, it.timestamp))
+                }
+            } else {
+                historyList = mapped.sortedWith(
+                    compareByDescending<HistoryItem> { it.isPinned }
+                        .thenByDescending { it.timestamp }
+                )
+            }
         }
     }
 
     LaunchedEffect(Unit) {
-        historyList = loadHistory()
         delay(150)
         focusRequester.requestFocus()
         keyboardController?.show()
     }
 
-    fun saveHistory(newList: List<HistoryItem>) {
-        val sortedList = newList.sortedWith(
-            compareByDescending<HistoryItem> { it.isPinned }
-                .thenByDescending { it.timestamp }
-        )
-        historyList = sortedList
-        val json = Gson().toJson(sortedList)
-        sharedPreferences.edit().putString("history_list", json).apply()
-    }
+    val coroutineScope = rememberCoroutineScope()
 
     fun addToHistory(query: String) {
         val trimmed = query.trim()
         if (trimmed.isEmpty()) return
-        val existing = historyList.find { it.query.equals(trimmed, ignoreCase = true) }
-        val newList = historyList.filterNot { it.query.equals(trimmed, ignoreCase = true) }.toMutableList()
-        
-        val newItem = HistoryItem(
-            query = existing?.query ?: trimmed,
-            isPinned = existing?.isPinned ?: false,
-            timestamp = System.currentTimeMillis()
-        )
-        newList.add(0, newItem)
-        
-        val cappedList = if (newList.size > 20) {
-            val unpinned = newList.filter { !it.isPinned }
-            if (unpinned.isNotEmpty()) {
-                val oldestUnpinned = unpinned.minByOrNull { it.timestamp }
-                newList.filterNot { it == oldestUnpinned }
-            } else {
-                newList.take(20)
+        coroutineScope.launch {
+            val existing = historyList.find { it.query.equals(trimmed, ignoreCase = true) }
+            val entity = com.example.data.local.RecentSearchEntity(
+                query = existing?.query ?: trimmed,
+                isPinned = existing?.isPinned ?: false,
+                timestamp = System.currentTimeMillis()
+            )
+            recentSearchDao.insertSearch(entity)
+            
+            // Maintain limit if needed, though DAO already limits fetch to 10
+            // Optionally, delete oldest unpinned if over limit, but the DAO query limits to 10 anyway, 
+            // so we can just let it overwrite or manage itself. For strict control:
+            if (historyList.size >= 20 && existing == null) {
+                val oldestUnpinned = historyList.filter { !it.isPinned }.minByOrNull { it.timestamp }
+                if (oldestUnpinned != null) {
+                    recentSearchDao.deleteSearch(oldestUnpinned.query)
+                }
             }
-        } else {
-            newList
         }
-        saveHistory(cappedList)
     }
 
     fun togglePin(item: HistoryItem) {
-        val newList = historyList.map {
-            if (it.query == item.query) {
-                it.copy(isPinned = !it.isPinned, timestamp = System.currentTimeMillis())
-            } else {
-                it
-            }
+        coroutineScope.launch {
+            val entity = com.example.data.local.RecentSearchEntity(
+                query = item.query,
+                isPinned = !item.isPinned,
+                timestamp = System.currentTimeMillis()
+            )
+            recentSearchDao.insertSearch(entity)
         }
-        saveHistory(newList)
     }
 
     fun deleteHistoryItem(item: HistoryItem) {
-        val newList = historyList.filterNot { it.query == item.query }
-        saveHistory(newList)
+        coroutineScope.launch {
+            recentSearchDao.deleteSearch(item.query)
+        }
     }
 
     // Speech Recognition Setup
@@ -418,6 +425,9 @@ fun GlobalSearchScreen(
         allVideos.forEach { video ->
             if (video.title.lowercase().contains(q)) result.add(video.title)
         }
+        posts.forEach { post ->
+            if (post.title.lowercase().contains(q) || post.description.lowercase().contains(q)) result.add(post.title)
+        }
         allQuestionPapers.forEach { paper ->
             if (paper.title.lowercase().contains(q)) result.add(paper.title)
         }
@@ -468,10 +478,17 @@ fun GlobalSearchScreen(
             .map { it.first }
     }
 
+    val scoredPosts = remember(searchQuery, posts) {
+        posts.map { it to scorePost(it, searchQuery) }
+            .filter { it.second > 0 }
+            .sortedByDescending { it.second }
+            .map { it.first }
+    }
+
     val hasAnyResults = scoredQuestionPapers.isNotEmpty() || scoredBooks.isNotEmpty() || 
                        scoredVideos.isNotEmpty() || scoredTools.isNotEmpty() || 
                        userSearchResults.isNotEmpty() || scoredWebsites.isNotEmpty() ||
-                       scoredBoards.isNotEmpty()
+                       scoredBoards.isNotEmpty() || scoredPosts.isNotEmpty()
 
     val onBackAction: () -> Unit = {
         if (isSearchConfirmed) {
@@ -587,7 +604,7 @@ fun GlobalSearchScreen(
                         },
                         edgePadding = 16.dp
                     ) {
-                        val tabs = listOf("All", "Books", "Question Papers", "Videos", "Users", "Results")
+                        val tabs = listOf("All", "Posts", "Books", "Question Papers", "Videos", "Users", "Results")
                         tabs.forEachIndexed { index, title ->
                             Tab(
                                 selected = selectedTab == index,
@@ -630,7 +647,11 @@ fun GlobalSearchScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text("Recent Searches", style = MaterialTheme.typography.titleSmall, color = Color(0xFF94A3B8))
-                                    TextButton(onClick = { saveHistory(emptyList()) }) {
+                                    TextButton(onClick = { 
+                                        coroutineScope.launch {
+                                            recentSearchDao.clearAllSearches()
+                                        } 
+                                    }) {
                                         Text("Clear All", color = Color(0xFF38BDF8))
                                     }
                                 }
@@ -673,6 +694,14 @@ fun GlobalSearchScreen(
                     ) {
                         when (selectedTab) {
                             0 -> { // All Tab
+                                if (scoredPosts.isNotEmpty()) {
+                                    item { ResultHeader("Posts") }
+                                    items(scoredPosts.take(3)) { post ->
+                                        com.example.ui.components.PostCard(post = post) {
+                                            rootNavController.navigate("post_detail/${post.id}")
+                                        }
+                                    }
+                                }
                                 if (scoredBooks.isNotEmpty()) {
                                     item { ResultHeader("Books") }
                                     items(scoredBooks.take(3)) { book ->
@@ -774,7 +803,14 @@ fun GlobalSearchScreen(
                                     com.example.ui.components.NativeAdViewComposable()
                                 }
                             }
-                            1 -> { // Books
+                            1 -> { // Posts
+                                items(scoredPosts) { post ->
+                                    com.example.ui.components.PostCard(post = post) {
+                                        rootNavController.navigate("post_detail/${post.id}")
+                                    }
+                                }
+                            }
+                            2 -> { // Books
                                 items(scoredBooks) { book ->
                                     GoogleSearchCard(
                                         category = "Book",
@@ -791,7 +827,7 @@ fun GlobalSearchScreen(
                                     )
                                 }
                             }
-                            2 -> { // Question Papers
+                            3 -> { // Question Papers
                                 items(scoredQuestionPapers) { paper ->
                                     GoogleSearchCard(
                                         category = "Question Paper",
@@ -808,7 +844,7 @@ fun GlobalSearchScreen(
                                     )
                                 }
                             }
-                            3 -> { // Videos
+                            4 -> { // Videos
                                 items(scoredVideos) { video ->
                                     GoogleSearchCard(
                                         category = "Video",
@@ -822,14 +858,14 @@ fun GlobalSearchScreen(
                                     )
                                 }
                             }
-                            4 -> { // Users
+                            5 -> { // Users
                                 items(userSearchResults) { user ->
                                     UserSearchCard(user) {
                                         rootNavController.navigate("profile_details/${user.id}")
                                     }
                                 }
                             }
-                            5 -> { // Results
+                            6 -> { // Results
                                 items(scoredBoards) { b ->
                                     GoogleSearchCard(
                                         category = "Board Result",

@@ -223,6 +223,30 @@ fun HomeScreen(
                     }
                 }
 
+                // Posts Section
+                val posts by viewModel.posts.collectAsState()
+                if (posts.isNotEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        Text(
+                            text = "Latest Posts",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        )
+                        posts.take(10).forEach { post -> // Show up to 10 latest posts on home
+                            com.example.ui.components.PostCard(post = post) {
+                                rootNavController.navigate("post_detail/${post.id}")
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+
                 // 4. Dynamic Sections
                 homeSections.filter { it.isVisible }.forEachIndexed { index, section ->
                     when (section.type) {

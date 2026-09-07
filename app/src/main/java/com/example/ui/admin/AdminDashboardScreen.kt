@@ -245,12 +245,27 @@ fun AdminDashboardScreen(navController: NavController, authViewModel: AuthViewMo
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 CompactActionCard(
+                    title = "Manage Posts",
+                    icon = Icons.AutoMirrored.Filled.MenuBook,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    navController.navigate("admin_manage_posts")
+                }
+                CompactActionCard(
                     title = "Manage Quizzes",
                     icon = androidx.compose.material.icons.Icons.Filled.School,
                     modifier = Modifier.weight(1f)
                 ) {
                     navController.navigate("admin_manage_quizzes")
                 }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 CompactActionCard(
                     title = "Manage Users",
                     icon = androidx.compose.material.icons.Icons.Filled.Person,
@@ -258,6 +273,7 @@ fun AdminDashboardScreen(navController: NavController, authViewModel: AuthViewMo
                 ) {
                     navController.navigate("admin_users")
                 }
+                Box(modifier = Modifier.weight(1f))
             }
             
             Spacer(modifier = Modifier.height(8.dp))

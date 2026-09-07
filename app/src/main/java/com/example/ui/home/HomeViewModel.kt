@@ -25,6 +25,9 @@ class HomeViewModel(private val repository: AuraRepository) : ViewModel() {
     private val _homeSections = MutableStateFlow<List<com.example.data.models.HomeSectionConfig>>(emptyList())
     val homeSections: StateFlow<List<com.example.data.models.HomeSectionConfig>> = _homeSections.asStateFlow()
 
+    private val _posts = MutableStateFlow<List<com.example.data.models.Post>>(emptyList())
+    val posts: StateFlow<List<com.example.data.models.Post>> = _posts.asStateFlow()
+
     private val _recentBooks = MutableStateFlow<List<Book>>(emptyList())
     val recentBooks: StateFlow<List<Book>> = _recentBooks.asStateFlow()
 
@@ -68,7 +71,8 @@ class HomeViewModel(private val repository: AuraRepository) : ViewModel() {
                 AuraRepository.booksUpdateTrigger,
                 AuraRepository.videosUpdateTrigger,
                 AuraRepository.sectionsUpdateTrigger,
-                AuraRepository.homeConfigUpdateTrigger
+                AuraRepository.homeConfigUpdateTrigger,
+                AuraRepository.postsUpdateTrigger
             ).collect {
                 fetchData()
             }
@@ -138,6 +142,12 @@ class HomeViewModel(private val repository: AuraRepository) : ViewModel() {
             }
             
             // 2. Load other dynamic data with safe individual try-catches
+            try {
+                _posts.value = repository.getPosts()
+            } catch (e: Exception) {
+                android.util.Log.e("HomeViewModel", "Error loading posts", e)
+            }
+            
             try {
                 _banners.value = repository.getBanners()
             } catch (e: Exception) {

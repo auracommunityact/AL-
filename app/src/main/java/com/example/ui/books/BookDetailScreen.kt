@@ -135,6 +135,7 @@ fun BookDetailScreen(
 
     val isSaved = currentUser?.savedBooks?.contains(currentBookId) == true
     val isDownloaded = offlineBooks.any { it.id == currentBookId }
+    val localFile = offlineBooks.find { it.id == currentBookId }
     val currentProgress = downloadProgress[currentBookId]
 
     Scaffold(
@@ -457,7 +458,7 @@ fun BookDetailScreen(
                             Box(modifier = Modifier.fillMaxSize()) {
                                 AsyncImage(
                                     model = coil.request.ImageRequest.Builder(LocalContext.current)
-                                        .data(currentBook.coverImage.ifEmpty { "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=300&q=80" })
+                                        .data(localFile?.coverImage?.ifEmpty { null } ?: currentBook.coverImage.ifEmpty { "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=300&q=80" })
                                         .crossfade(true)
                                         .build(),
                                     contentDescription = currentBook.bookName,

@@ -200,6 +200,27 @@ fun AuraLearningApp(themeViewModel: ThemeViewModel? = null, initialDeepLink: Str
         composable("login") { LoginScreen(rootNavController, authViewModel) }
         composable("register") { RegisterScreen(rootNavController, authViewModel) }
         composable("admin_dashboard") { com.example.ui.admin.AdminDashboardScreen(rootNavController, authViewModel) }
+        composable(
+            "post_detail/{postId}",
+            arguments = listOf(androidx.navigation.navArgument("postId") { type = androidx.navigation.NavType.StringType })
+        ) { backStackEntry ->
+            val postId = backStackEntry.arguments?.getString("postId") ?: ""
+            com.example.ui.home.PostDetailScreen(rootNavController, postId)
+        }
+        composable("admin_manage_posts") { com.example.ui.admin.AdminManagePostsScreen(rootNavController) }
+        composable(
+            "admin_add_edit_post?postId={postId}",
+            arguments = listOf(androidx.navigation.navArgument("postId") { 
+                type = androidx.navigation.NavType.StringType 
+                nullable = true
+            })
+        ) { backStackEntry ->
+            val postId = backStackEntry.arguments?.getString("postId")
+            com.example.ui.admin.AdminAddEditPostScreen(rootNavController, postId)
+        }
+        composable("admin_add_edit_post") { 
+            com.example.ui.admin.AdminAddEditPostScreen(rootNavController, null) 
+        }
         composable("admin_users") { com.example.ui.admin.AdminUsersScreen(rootNavController) }
         composable(
             "admin_user_profile/{userId}",

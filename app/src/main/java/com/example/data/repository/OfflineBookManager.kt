@@ -23,7 +23,16 @@ class OfflineBookManager(private val context: Context) {
                 val fileName = "book_${book.id}.pdf"
                 val file = File(context.filesDir, fileName)
 
-                val url = URL(book.pdfUrl)
+                var downloadUrl = book.pdfUrl
+                if (downloadUrl.contains("drive.google.com/file/d/")) {
+                    val parts = downloadUrl.split("/")
+                    val idIndex = parts.indexOf("d") + 1
+                    if (idIndex < parts.size) {
+                        downloadUrl = "https://drive.google.com/uc?export=download&id=${parts[idIndex]}"
+                    }
+                }
+
+                val url = URL(downloadUrl)
                 val connection = url.openConnection()
                 connection.connect()
 
@@ -37,19 +46,39 @@ class OfflineBookManager(private val context: Context) {
                         while (input.read(data).also { count = it } != -1) {
                             total += count.toLong()
                             if (fileLength > 0) {
-                                onProgress((total * 100 / fileLength).toInt())
+                                onProgress(((total * 90) / fileLength).toInt())
                             }
                             output.write(data, 0, count)
                         }
                     }
                 }
+                
+                // Download Cover Image
+                val coverFileName = "book_cover_${book.id}.jpg"
+                val coverFile = File(context.filesDir, coverFileName)
+                var localCoverPath = book.coverImage
+                try {
+                    val coverUrl = URL(book.coverImage)
+                    val coverConnection = coverUrl.openConnection()
+                    coverConnection.connect()
+                    coverUrl.openStream().use { input ->
+                        coverFile.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    localCoverPath = "file://" + coverFile.absolutePath
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                onProgress(100)
 
                 val offlineBook = OfflineBook(
                     id = book.id,
                     bookName = book.bookName,
                     className = book.className,
                     subject = book.subject,
-                    coverImage = book.coverImage,
+                    coverImage = localCoverPath,
                     localPdfPath = file.absolutePath,
                     downloadedAt = System.currentTimeMillis()
                 )
@@ -71,6 +100,13 @@ class OfflineBookManager(private val context: Context) {
                 if (file.exists()) {
                     file.delete()
                 }
+                
+                val coverPath = if (book.coverImage.startsWith("file://")) book.coverImage.removePrefix("file://") else book.coverImage
+                val coverFile = File(coverPath)
+                if (coverFile.exists() && coverPath.startsWith(context.filesDir.absolutePath)) {
+                    coverFile.delete()
+                }
+                
                 offlineBookDao.deleteOfflineBookById(bookId)
             }
         }

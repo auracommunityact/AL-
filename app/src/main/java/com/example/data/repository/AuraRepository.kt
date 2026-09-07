@@ -67,6 +67,9 @@ class AuraRepository {
         private val _homeConfigUpdateTrigger = MutableSharedFlow<Unit>(replay = 1).apply { tryEmit(Unit) }
         val homeConfigUpdateTrigger = _homeConfigUpdateTrigger.asSharedFlow()
 
+        private val _postsUpdateTrigger = MutableSharedFlow<Unit>(replay = 1).apply { tryEmit(Unit) }
+        val postsUpdateTrigger = _postsUpdateTrigger.asSharedFlow()
+
         suspend fun notifyBooksChanged() {
             _booksUpdateTrigger.emit(Unit)
         }
@@ -89,6 +92,10 @@ class AuraRepository {
 
         suspend fun notifyHomeConfigChanged() {
             _homeConfigUpdateTrigger.emit(Unit)
+        }
+
+        suspend fun notifyPostsChanged() {
+            _postsUpdateTrigger.emit(Unit)
         }
     }
 
@@ -1293,6 +1300,80 @@ class AuraRepository {
         } catch (e: Exception) {
             e.printStackTrace()
             false
+        }
+    }
+
+    // POSTS
+    suspend fun getPosts(): List<com.example.data.models.Post> {
+        return SupabaseService.retryWithExponentialBackoff {
+            try {
+                client.postgrest["posts"].select().decodeList<com.example.data.models.Post>().sortedByDescending { it.created_at ?: "" }
+            } catch (e: Exception) {
+                emptyList()
+            }
+        }
+    }
+
+    suspend fun addPost(post: com.example.data.models.Post) {
+        SupabaseService.retryWithExponentialBackoff {
+            client.postgrest["posts"].insert(post)
+        }
+    }
+
+    suspend fun updatePost(post: com.example.data.models.Post) {
+        SupabaseService.retryWithExponentialBackoff {
+            client.postgrest["posts"].update(
+                {
+                    set("title", post.title)
+                    set("description", post.description)
+                    set("image_url", post.image_url)
+                }
+            ) {
+                filter { eq("id", post.id) }
+            }
+        }
+    }
+
+    suspend fun deletePost(postId: String) {
+        SupabaseService.retryWithExponentialBackoff {
+            client.postgrest["posts"].delete {
+                filter { eq("id", postId) }
+            }
+        }
+    }
+
+    suspend fun uploadPostImage(imageBytes: ByteArray, fileName: String): String {
+        return try {
+            val bucket = client.storage["posts"]
+            bucket.upload(fileName, imageBytes) { upsert = true }
+            bucket.publicUrl(fileName)
+        } catch (e: Exception) {
+            // Fallback to covers bucket if specialized bucket doesn't exist
+            try {
+                val bucket = client.storage["covers"]
+                bucket.upload("posts/$fileName", imageBytes) { upsert = true }
+                bucket.publicUrl("posts/$fileName")
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+                ""
+            }
+        }
+    }
+
+    suspend fun deletePostImage(url: String) {
+        try {
+            if (url.contains("/posts/")) {
+                val fileName = url.substringAfterLast("/")
+                try {
+                    val bucket = client.storage["posts"]
+                    bucket.delete(fileName)
+                } catch(e: Exception) {
+                    val bucket = client.storage["covers"]
+                    bucket.delete("posts/$fileName")
+                }
+            }
+        } catch(e: Exception) {
+            e.printStackTrace()
         }
     }
 
