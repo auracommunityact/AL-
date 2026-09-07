@@ -24,6 +24,8 @@ object AuthErrorHelper {
                 "Too many requests. Please wait a moment and try again."
             message.contains("invalid email") ->
                 "Please enter a valid email address."
+            message.contains("invalid api key") || message.contains("jwt") || message.contains("unauthorized") ->
+                "Configuration error: Invalid API key or unauthorized access."
             else -> e.message ?: "An unexpected error occurred. Please try again."
         }
     }

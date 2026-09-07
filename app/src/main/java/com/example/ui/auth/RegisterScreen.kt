@@ -79,7 +79,7 @@ fun RegisterScreen(navController: NavController, viewModel: AuthViewModel) {
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -110,12 +110,12 @@ fun RegisterScreen(navController: NavController, viewModel: AuthViewModel) {
                 text = "Create Account",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = NeroBlue
+                color = MaterialTheme.colorScheme.primary
             )
             Text(
                 text = "Join Aura Learning today.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp)
             )
             
@@ -130,7 +130,7 @@ fun RegisterScreen(navController: NavController, viewModel: AuthViewModel) {
                 },
                 label = { Text("Full Name") },
                 placeholder = { Text("Enter your full name") },
-                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = NeroBlue) },
+                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
@@ -144,9 +144,16 @@ fun RegisterScreen(navController: NavController, viewModel: AuthViewModel) {
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = NeroBlue,
-                    focusedLabelColor = NeroBlue
-                )
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
             )
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -160,7 +167,7 @@ fun RegisterScreen(navController: NavController, viewModel: AuthViewModel) {
                 },
                 label = { Text("Email Address") },
                 placeholder = { Text("Enter your email") },
-                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = NeroBlue) },
+                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next
@@ -174,9 +181,16 @@ fun RegisterScreen(navController: NavController, viewModel: AuthViewModel) {
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = NeroBlue,
-                    focusedLabelColor = NeroBlue
-                )
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
             )
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -190,12 +204,12 @@ fun RegisterScreen(navController: NavController, viewModel: AuthViewModel) {
                 },
                 label = { Text("Password") },
                 placeholder = { Text("Enter your password") },
-                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = NeroBlue) },
+                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingIcon = {
                     val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                     val description = if (passwordVisible) "Hide password" else "Show password"
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(imageVector = image, contentDescription = description, tint = NeroBlue)
+                        Icon(imageVector = image, contentDescription = description, tint = MaterialTheme.colorScheme.primary)
                     }
                 },
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -208,15 +222,22 @@ fun RegisterScreen(navController: NavController, viewModel: AuthViewModel) {
                     if (passwordError != null) {
                         Text(text = passwordError!!, color = MaterialTheme.colorScheme.error)
                     } else {
-                        Text(text = "Password must contain at least 8 characters.", color = Color.Gray)
+                        Text(text = "Password must contain at least 8 characters.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 },
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = NeroBlue,
-                    focusedLabelColor = NeroBlue
-                )
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
             )
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -230,12 +251,12 @@ fun RegisterScreen(navController: NavController, viewModel: AuthViewModel) {
                 },
                 label = { Text("Confirm Password") },
                 placeholder = { Text("Re-enter your password") },
-                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = NeroBlue) },
+                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingIcon = {
                     val image = if (confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                     val description = if (confirmPasswordVisible) "Hide password" else "Show password"
                     IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
-                        Icon(imageVector = image, contentDescription = description, tint = NeroBlue)
+                        Icon(imageVector = image, contentDescription = description, tint = MaterialTheme.colorScheme.primary)
                     }
                 },
                 visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -257,9 +278,16 @@ fun RegisterScreen(navController: NavController, viewModel: AuthViewModel) {
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = NeroBlue,
-                    focusedLabelColor = NeroBlue
-                )
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
             )
             
             Spacer(modifier = Modifier.height(24.dp))
@@ -306,11 +334,11 @@ fun RegisterScreen(navController: NavController, viewModel: AuthViewModel) {
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = NeroBlue),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 enabled = authState !is AuthState.Loading
             ) {
                 if (authState is AuthState.Loading) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
                 } else {
                     Text("Create Account", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
@@ -323,11 +351,11 @@ fun RegisterScreen(navController: NavController, viewModel: AuthViewModel) {
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Already have an account?", color = Color.Gray)
+                Text("Already have an account?", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "Login",
-                    color = NeroBlue,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable {
                         viewModel.resetState()
@@ -349,13 +377,13 @@ fun RegisterScreen(navController: NavController, viewModel: AuthViewModel) {
                 Text(
                     text = "By creating an account, you agree to our",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Row {
                     Text(
                         text = "Terms of Use",
                         style = MaterialTheme.typography.bodySmall,
-                        color = NeroBlue,
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.clickable {
                             // TODO: Navigate to Terms
@@ -364,12 +392,12 @@ fun RegisterScreen(navController: NavController, viewModel: AuthViewModel) {
                     Text(
                         text = " and ",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = "Privacy Policy",
                         style = MaterialTheme.typography.bodySmall,
-                        color = NeroBlue,
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.clickable {
                             // TODO: Navigate to Privacy
@@ -382,13 +410,13 @@ fun RegisterScreen(navController: NavController, viewModel: AuthViewModel) {
                 Text(
                     text = "Powered by Aura Community Act",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
                     text = "Owner & Founder — Shaan Mohammad",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }

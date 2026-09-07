@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.R
 
-internal val NeroBlue = Color(0xFF0F172A) // Deep Nero Blue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,7 +76,7 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -109,12 +108,12 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
                 text = "Welcome to Aura Learning",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = NeroBlue
+                color = MaterialTheme.colorScheme.primary
             )
             Text(
                 text = "Learn smarter. Grow better.",
                 style = MaterialTheme.typography.bodyLarge,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp)
             )
             
@@ -126,7 +125,7 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
                     text = "Reset Password",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = NeroBlue,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.align(Alignment.Start)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -139,7 +138,7 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
                     },
                     label = { Text("Email Address") },
                     placeholder = { Text("Enter your email") },
-                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = NeroBlue) },
+                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Email,
                         imeAction = ImeAction.Done
@@ -156,8 +155,15 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = NeroBlue,
-                        focusedLabelColor = NeroBlue
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        cursorColor = MaterialTheme.colorScheme.primary
                     )
                 )
                 
@@ -180,11 +186,11 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = NeroBlue),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     enabled = authState !is AuthState.Loading
                 ) {
                     if (authState is AuthState.Loading) {
-                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
                     } else {
                         Text("Send Reset Link", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
@@ -193,7 +199,7 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 TextButton(onClick = { showForgotPassword = false }) {
-                    Text("Back to Login", color = NeroBlue, fontWeight = FontWeight.Bold)
+                    Text("Back to Login", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 }
             } else {
                 // Login Flow
@@ -205,7 +211,7 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
                     },
                     label = { Text("Email Address") },
                     placeholder = { Text("Enter your email") },
-                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = NeroBlue) },
+                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Email,
                         imeAction = ImeAction.Next
@@ -219,8 +225,15 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = NeroBlue,
-                        focusedLabelColor = NeroBlue
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        cursorColor = MaterialTheme.colorScheme.primary
                     )
                 )
                 
@@ -234,12 +247,12 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
                     },
                     label = { Text("Password") },
                     placeholder = { Text("Enter your password") },
-                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = NeroBlue) },
+                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                     trailingIcon = {
                         val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                         val description = if (passwordVisible) "Hide password" else "Show password"
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(imageVector = image, contentDescription = description, tint = NeroBlue)
+                            Icon(imageVector = image, contentDescription = description, tint = MaterialTheme.colorScheme.primary)
                         }
                     },
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -262,8 +275,15 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = NeroBlue,
-                        focusedLabelColor = NeroBlue
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        cursorColor = MaterialTheme.colorScheme.primary
                     )
                 )
                 
@@ -273,7 +293,7 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
                         showForgotPassword = true 
                         viewModel.resetState()
                     }) {
-                        Text("Forgot Password?", color = NeroBlue, fontWeight = FontWeight.SemiBold)
+                        Text("Forgot Password?", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
                     }
                 }
                 
@@ -304,11 +324,11 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = NeroBlue),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     enabled = authState !is AuthState.Loading
                 ) {
                     if (authState is AuthState.Loading) {
-                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
                     } else {
                         Text("Login", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
@@ -321,11 +341,11 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Don't have an account?", color = Color.Gray)
+                    Text("Don't have an account?", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "Sign Up",
-                        color = NeroBlue,
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.clickable {
                             viewModel.resetState()
@@ -348,13 +368,13 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
                 Text(
                     text = "By continuing, you agree to our",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Row {
                     Text(
                         text = "Terms of Use",
                         style = MaterialTheme.typography.bodySmall,
-                        color = NeroBlue,
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.clickable {
                             // TODO: Navigate to Terms
@@ -363,12 +383,12 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
                     Text(
                         text = " and ",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = "Privacy Policy",
                         style = MaterialTheme.typography.bodySmall,
-                        color = NeroBlue,
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.clickable {
                             // TODO: Navigate to Privacy
@@ -381,13 +401,13 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
                 Text(
                     text = "Powered by Aura Community Act",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
                     text = "Owner & Founder — Shaan Mohammad",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }

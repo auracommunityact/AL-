@@ -20,7 +20,7 @@ object SupabaseService {
         val url = try { BuildConfig.SUPABASE_URL } catch (e: Throwable) { "" }
             .ifBlank { "https://qxoqflrqpwlythgqmjtq.supabase.co" }
         val key = try { BuildConfig.SUPABASE_ANON_KEY } catch (e: Throwable) { "" }
-            .ifBlank { "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4b3FmbHJxcHdseXRocW1qdHEiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoyMDE1NTc2MDAwfQ.placeholder" }
+            .ifBlank { "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4b3FmbHJxcHdseXRoZ3FtanRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxODIxMTQsImV4cCI6MjA5Nzc1ODExNH0.cJ3hIsEyRtH1m_nmyzwjrdvzsbGIKIiChnmXAjgFRfo" }
 
         createSupabaseClient(
             supabaseUrl = url,
