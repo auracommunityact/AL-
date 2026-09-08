@@ -4,12 +4,14 @@ import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.network.sockets.SocketTimeoutException
 import java.net.ConnectException
 import java.net.UnknownHostException
+import com.example.data.supabase.NetworkException
 
 object AuthErrorHelper {
     fun getFriendlyMessage(e: Throwable): String {
         val message = e.message?.lowercase() ?: ""
         
         return when {
+            e is NetworkException -> e.message ?: "No internet connection."
             e is ConnectException || e is UnknownHostException -> 
                 "Network error. Please check your internet connection."
             e is ConnectTimeoutException || e is SocketTimeoutException || message.contains("timeout") ->

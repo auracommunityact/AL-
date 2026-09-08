@@ -40,6 +40,15 @@ fun PostCard(post: Post, onClick: (() -> Unit)? = null) {
                         .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
                     contentScale = ContentScale.Crop
                 )
+            } else if (!post.youtube_video_id.isNullOrBlank() && onClick != null) {
+                 Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                ) {
+                    YouTubePlayerComponent(videoId = post.youtube_video_id, videoUrl = post.youtube_url)
+                }
             }
             
             Column(modifier = Modifier.padding(16.dp)) {
@@ -50,7 +59,28 @@ fun PostCard(post: Post, onClick: (() -> Unit)? = null) {
                     color = Color.White
                 )
                 
+                if (post.status.isNotBlank()) {
+                     Spacer(modifier = Modifier.height(4.dp))
+                     Text(
+                         text = post.status.uppercase(),
+                         style = MaterialTheme.typography.labelSmall,
+                         color = if (post.status == "published") Color(0xFF10B981) else Color(0xFFF59E0B)
+                     )
+                }
+                
                 Spacer(modifier = Modifier.height(8.dp))
+                
+                if (!post.youtube_video_id.isNullOrBlank() && onClick == null && post.image_url.isNullOrBlank()) {
+                     Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                    ) {
+                        YouTubePlayerComponent(videoId = post.youtube_video_id, videoUrl = post.youtube_url)
+                    }
+                     Spacer(modifier = Modifier.height(8.dp))
+                }
                 
                 PostDescriptionWithYouTube(description = post.description, isSummary = onClick != null)
             }

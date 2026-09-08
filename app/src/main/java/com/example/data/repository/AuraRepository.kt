@@ -1302,10 +1302,16 @@ class AuraRepository {
     }
 
     // POSTS
-    suspend fun getPosts(): List<com.example.data.models.Post> {
+    suspend fun getPosts(onlyPublished: Boolean = false): List<com.example.data.models.Post> {
         return SupabaseService.retryWithExponentialBackoff {
             try {
-                client.postgrest["posts"].select().decodeList<com.example.data.models.Post>().sortedByDescending { it.created_at ?: "" }
+                if (onlyPublished) {
+                    client.postgrest["posts"].select {
+                        filter { eq("status", "published") }
+                    }.decodeList<com.example.data.models.Post>().sortedByDescending { it.created_at ?: "" }
+                } else {
+                    client.postgrest["posts"].select().decodeList<com.example.data.models.Post>().sortedByDescending { it.created_at ?: "" }
+                }
             } catch (e: Exception) {
                 emptyList()
             }
@@ -1325,6 +1331,10 @@ class AuraRepository {
                     set("title", post.title)
                     set("description", post.description)
                     set("image_url", post.image_url)
+                    set("youtube_url", post.youtube_url)
+                    set("youtube_video_id", post.youtube_video_id)
+                    set("status", post.status)
+                    // Note: updated_at is updated automatically via Supabase DB Trigger
                 }
             ) {
                 filter { eq("id", post.id) }
@@ -1342,33 +1352,20 @@ class AuraRepository {
 
     suspend fun uploadPostImage(imageBytes: ByteArray, fileName: String): String {
         return try {
-            val bucket = client.storage["posts"]
+            val bucket = client.storage["post-images"]
             bucket.upload(fileName, imageBytes) { upsert = true }
             bucket.publicUrl(fileName)
         } catch (e: Exception) {
-            // Fallback to covers bucket if specialized bucket doesn't exist
-            try {
-                val bucket = client.storage["covers"]
-                bucket.upload("posts/$fileName", imageBytes) { upsert = true }
-                bucket.publicUrl("posts/$fileName")
-            } catch (ex: Exception) {
-                ex.printStackTrace()
-                ""
-            }
+            e.printStackTrace()
+            ""
         }
     }
 
     suspend fun deletePostImage(url: String) {
         try {
-            if (url.contains("/posts/")) {
+            if (url.contains("/post-images/")) {
                 val fileName = url.substringAfterLast("/")
-                try {
-                    val bucket = client.storage["posts"]
-                    bucket.delete(fileName)
-                } catch(e: Exception) {
-                    val bucket = client.storage["covers"]
-                    bucket.delete("posts/$fileName")
-                }
+                client.storage["post-images"].delete(fileName)
             }
         } catch(e: Exception) {
             e.printStackTrace()

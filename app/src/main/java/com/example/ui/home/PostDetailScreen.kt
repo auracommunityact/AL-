@@ -26,7 +26,7 @@ fun PostDetailScreen(
     var isLoading by remember { mutableStateOf(true) }
     
     LaunchedEffect(postId) {
-        val posts = repository.getPosts()
+        val posts = repository.getPosts() // Let's just use all posts so if an admin clicks it, they can view draft details. RLS handles security.
         post = posts.find { it.id == postId }
         isLoading = false
     }

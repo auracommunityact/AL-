@@ -353,3 +353,67 @@ CREATE POLICY "Admin write access for quiz_questions" ON public.quiz_questions F
 
 CREATE POLICY "Users can view own quiz results" ON public.quiz_results FOR SELECT USING (auth.uid() = "userId");
 CREATE POLICY "Users can insert own quiz results" ON public.quiz_results FOR INSERT WITH CHECK (auth.uid() = "userId");
+
+-- =========================================
+-- POSTS SYSTEM SCHEMA
+-- =========================================
+
+CREATE TABLE IF NOT EXISTS public.posts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title TEXT NOT NULL,
+    description TEXT,
+    image_url TEXT,
+    youtube_url TEXT,
+    youtube_video_id TEXT,
+    status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Index for faster querying of published posts
+CREATE INDEX IF NOT EXISTS idx_posts_status ON public.posts(status);
+CREATE INDEX IF NOT EXISTS idx_posts_created_at ON public.posts(created_at DESC);
+
+-- Trigger for updated_at
+DROP TRIGGER IF EXISTS set_posts_timestamp ON public.posts;
+CREATE TRIGGER set_posts_timestamp
+BEFORE UPDATE ON public.posts
+FOR EACH ROW
+EXECUTE PROCEDURE public.trigger_set_timestamp();
+
+ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
+
+-- Post Policies
+-- 1. Normal authenticated users (and public if needed) can read published posts
+CREATE POLICY "Public read access for published posts" ON public.posts FOR SELECT USING (status = 'published');
+
+-- 2. Admin can read all posts including drafts
+CREATE POLICY "Admin read access for all posts" ON public.posts FOR SELECT USING ( public.is_admin() );
+
+-- 3. Admin can insert, update, delete
+CREATE POLICY "Admin write access for posts" ON public.posts FOR ALL USING ( public.is_admin() );
+
+-- =========================================
+-- POST IMAGES STORAGE BUCKET
+-- =========================================
+
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('post-images', 'post-images', true) 
+ON CONFLICT DO NOTHING;
+
+-- Storage Policies for post-images
+CREATE POLICY "Public read access for post-images" 
+ON storage.objects FOR SELECT 
+USING (bucket_id = 'post-images');
+
+CREATE POLICY "Admin insert access for post-images" 
+ON storage.objects FOR INSERT 
+WITH CHECK (bucket_id = 'post-images' AND public.is_admin());
+
+CREATE POLICY "Admin update access for post-images" 
+ON storage.objects FOR UPDATE 
+USING (bucket_id = 'post-images' AND public.is_admin());
+
+CREATE POLICY "Admin delete access for post-images" 
+ON storage.objects FOR DELETE 
+USING (bucket_id = 'post-images' AND public.is_admin());

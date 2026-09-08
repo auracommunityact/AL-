@@ -14,8 +14,26 @@ import java.io.IOException
 
 import io.github.jan.supabase.realtime.Realtime
 import io.github.jan.supabase.realtime.realtime
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import com.example.AppContext
+
+class NetworkException(message: String) : IOException(message)
 
 object SupabaseService {
+    
+    fun checkNetworkReachability() {
+        val context = AppContext.safeContext ?: return
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivityManager.activeNetwork ?: throw NetworkException("No active internet connection found. Please check your network settings.")
+        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: throw NetworkException("No active internet connection found. Please check your network settings.")
+        
+        if (!capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+            throw NetworkException("Your current network does not have internet access.")
+        }
+    }
+
     val client by lazy {
         val url = try { BuildConfig.SUPABASE_URL } catch (e: Throwable) { "" }
             .ifBlank { "https://qxoqflrqpwlythgqmjtq.supabase.co" }

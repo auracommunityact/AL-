@@ -143,7 +143,7 @@ class HomeViewModel(private val repository: AuraRepository) : ViewModel() {
             
             // 2. Load other dynamic data with safe individual try-catches
             try {
-                _posts.value = repository.getPosts()
+                _posts.value = repository.getPosts(onlyPublished = true)
             } catch (e: Exception) {
                 android.util.Log.e("HomeViewModel", "Error loading posts", e)
             }

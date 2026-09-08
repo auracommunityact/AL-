@@ -39,6 +39,8 @@ fun AdminAddEditPostScreen(
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+    var youtubeUrl by remember { mutableStateOf("") }
+    var status by remember { mutableStateOf("draft") }
     var imageUrl by remember { mutableStateOf<String?>(null) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     
@@ -62,6 +64,8 @@ fun AdminAddEditPostScreen(
                 if (post != null) {
                     title = post.title
                     description = post.description
+                    youtubeUrl = post.youtube_url ?: ""
+                    status = post.status
                     imageUrl = post.image_url
                 } else {
                     Toast.makeText(context, "Post not found", Toast.LENGTH_SHORT).show()
@@ -117,9 +121,38 @@ fun AdminAddEditPostScreen(
                     value = description,
                     onValueChange = { description = it },
                     label = { Text("Description (Required)") },
-                    placeholder = { Text("Enter post content. Paste YouTube URLs to embed videos automatically.") },
+                    placeholder = { Text("Enter post content.") },
                     modifier = Modifier.fillMaxWidth().height(150.dp)
                 )
+                
+                OutlinedTextField(
+                    value = youtubeUrl,
+                    onValueChange = { youtubeUrl = it },
+                    label = { Text("YouTube Video URL (Optional)") },
+                    placeholder = { Text("e.g. https://youtu.be/...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Status", style = MaterialTheme.typography.titleMedium)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(
+                            selected = status == "draft",
+                            onClick = { status = "draft" }
+                        )
+                        Text("Draft", modifier = Modifier.padding(end = 16.dp))
+                        RadioButton(
+                            selected = status == "published",
+                            onClick = { status = "published" }
+                        )
+                        Text("Published")
+                    }
+                }
                 
                 Text("Post Picture (Optional)", style = MaterialTheme.typography.titleSmall)
 
@@ -179,11 +212,25 @@ fun AdminAddEditPostScreen(
                                     }
                                 }
 
+                                val finalYoutubeUrl = youtubeUrl.takeIf { it.isNotBlank() }
+                                var extractedVideoId: String? = null
+                                if (finalYoutubeUrl != null) {
+                                    val pattern = "(?<=watch\\?v=|/videos/|embed\\/|youtu.be\\/|\\/v\\/|\\/e\\/|watch\\?v%3D|watch\\?feature=player_embedded&v=|%2Fvideos%2F|embed%\u200C\u200B2F|youtu.be%2F|%2Fv%2F|shorts\\/)[^#\\&\\?\\n]*"
+                                    val compiledPattern = java.util.regex.Pattern.compile(pattern)
+                                    val matcher = compiledPattern.matcher(finalYoutubeUrl)
+                                    if (matcher.find()) {
+                                        extractedVideoId = matcher.group()
+                                    }
+                                }
+
                                 val post = Post(
                                     id = postId ?: UUID.randomUUID().toString(),
                                     title = title,
                                     description = description,
-                                    image_url = finalImageUrl
+                                    image_url = finalImageUrl,
+                                    youtube_url = finalYoutubeUrl,
+                                    youtube_video_id = extractedVideoId,
+                                    status = status
                                 )
 
                                 if (postId == null) {
@@ -205,7 +252,7 @@ fun AdminAddEditPostScreen(
                     modifier = Modifier.fillMaxWidth(),
                     enabled = title.isNotBlank() && description.isNotBlank()
                 ) {
-                    Text(if (postId == null) "Publish Post" else "Update Post")
+                    Text(if (postId == null) "Create Post" else "Update Post")
                 }
             }
         }

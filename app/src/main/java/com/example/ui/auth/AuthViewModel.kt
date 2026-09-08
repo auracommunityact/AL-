@@ -77,6 +77,7 @@ class AuthViewModel(private val repository: AuraRepository) : ViewModel() {
         _authState.value = AuthState.Loading
         viewModelScope.launch {
             try {
+                com.example.data.supabase.SupabaseService.checkNetworkReachability()
                 client.auth.signInWith(Email) {
                     this.email = email
                     this.password = pass
@@ -114,6 +115,7 @@ class AuthViewModel(private val repository: AuraRepository) : ViewModel() {
         _authState.value = AuthState.Loading
         viewModelScope.launch {
             try {
+                com.example.data.supabase.SupabaseService.checkNetworkReachability()
                 client.auth.signUpWith(Email) {
                     this.email = email
                     this.password = pass
@@ -145,6 +147,7 @@ class AuthViewModel(private val repository: AuraRepository) : ViewModel() {
         _authState.value = AuthState.Loading
         viewModelScope.launch {
             try {
+                com.example.data.supabase.SupabaseService.checkNetworkReachability()
                 client.auth.signInWith(IDToken) {
                     this.idToken = idToken
                     this.provider = Google
@@ -202,6 +205,7 @@ class AuthViewModel(private val repository: AuraRepository) : ViewModel() {
     fun sendPasswordReset(email: String) {
         viewModelScope.launch {
             try {
+                com.example.data.supabase.SupabaseService.checkNetworkReachability()
                 client.auth.resetPasswordForEmail(email)
                 _authState.value = AuthState.Error("Password reset email sent.")
             } catch (e: Exception) {
