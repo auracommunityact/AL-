@@ -269,7 +269,7 @@ fun AdminManageExamsScreen(navController: NavController) {
                                 showDialog = false
                                 refreshBoards()
                             } catch (e: Exception) {
-                                Toast.makeText(context, "Operation failed: ${e.message}", Toast.LENGTH_LONG).show()
+                                Toast.makeText(context, "Upload failed: ${e.message ?: "Network or server error"}", Toast.LENGTH_LONG).show()
                             }
                         }
                     }

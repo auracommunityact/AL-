@@ -51,6 +51,14 @@ data class BoardResult(
     val createdAt: Long = 0L
 )
 
+@Serializable
+data class BoardResultRequest(
+    val board: String = "",
+    val website: String = "",
+    @Serializable(with = TimestampSerializer::class)
+    val createdAt: Long = 0L
+)
+
 val boardsJson = """
 [
   { "board": "CBSE", "website": "https://results.cbse.nic.in" },

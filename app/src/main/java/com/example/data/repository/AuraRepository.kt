@@ -167,7 +167,6 @@ class AuraRepository {
                 filter { eq("id", uid) }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
@@ -175,7 +174,6 @@ class AuraRepository {
         try {
             client.postgrest["users"].insert(user)
         } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
@@ -185,8 +183,6 @@ class AuraRepository {
                 filter { eq("id", user.id) }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
         }
     }
 
@@ -550,8 +546,6 @@ class AuraRepository {
             client.postgrest["home_sections"].insert(if (config.id.isEmpty() || config.id.length > 20) getJsonWithoutId(config) else config)
             notifyHomeConfigChanged()
         } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
         }
     }
 
@@ -561,8 +555,6 @@ class AuraRepository {
             client.postgrest["banners"].insert(if (newBanner.id.isEmpty() || newBanner.id.length > 20) getJsonWithoutId(newBanner) else newBanner)
             notifyHomeConfigChanged()
         } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
         }
     }
 
@@ -573,8 +565,6 @@ class AuraRepository {
             }
             notifyHomeConfigChanged()
         } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
         }
     }
 
@@ -586,8 +576,6 @@ class AuraRepository {
             }
             notifyHomeConfigChanged()
         } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
         }
     }
 
@@ -598,8 +586,6 @@ class AuraRepository {
             }
             notifyHomeConfigChanged()
         } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
         }
     }
 
@@ -608,8 +594,6 @@ class AuraRepository {
             val newPaper = if (paper.id.isEmpty()) paper.copy(createdAt = System.currentTimeMillis()) else paper
             client.postgrest["question_papers"].insert(if (paper.id.isEmpty() || paper.id.length > 20) getJsonWithoutId(newPaper) else newPaper)
         } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
         }
     }
     
@@ -621,8 +605,6 @@ class AuraRepository {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
         }
     }
     
@@ -635,8 +617,6 @@ class AuraRepository {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
         }
     }
 
@@ -655,8 +635,6 @@ class AuraRepository {
             client.postgrest["question_paper_sections"].insert(if (section.id.isEmpty() || section.id.length > 20) getJsonWithoutId(newSection) else newSection)
             notifySectionsChanged()
         } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
         }
     }
 
@@ -669,8 +647,6 @@ class AuraRepository {
                 notifySectionsChanged()
             }
         } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
         }
     }
 
@@ -684,8 +660,6 @@ class AuraRepository {
                 notifySectionsChanged()
             }
         } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
         }
     }
 
@@ -703,8 +677,6 @@ class AuraRepository {
             val newWebsite = if (website.id.isEmpty()) website.copy(createdAt = System.currentTimeMillis()) else website
             client.postgrest["websites"].insert(if (website.id.isEmpty() || website.id.length > 20) getJsonWithoutId(newWebsite) else newWebsite)
         } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
         }
     }
     
@@ -716,8 +688,6 @@ class AuraRepository {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
         }
     }
 
@@ -730,8 +700,6 @@ class AuraRepository {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
         }
     }
 
@@ -753,7 +721,6 @@ class AuraRepository {
             val newNote = if (note.id.isEmpty()) note.copy(createdAt = System.currentTimeMillis()) else note
             client.postgrest["notes"].insert(if (note.id.isEmpty() || note.id.length > 20) getJsonWithoutId(newNote) else newNote)
         } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
@@ -764,7 +731,6 @@ class AuraRepository {
                     filter { eq("id", noteId) }
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
             }
         }
     }
@@ -789,7 +755,6 @@ class AuraRepository {
             val inserted = result.decodeSingle<FlashcardDeck>()
             inserted.id
         } catch (e: Exception) {
-            e.printStackTrace()
             ""
         }
     }
@@ -804,7 +769,6 @@ class AuraRepository {
                     filter { eq("deckId", deckId) }
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
             }
         }
     }
@@ -825,7 +789,6 @@ class AuraRepository {
             val newCard = if (card.id.isEmpty()) card.copy(createdAt = System.currentTimeMillis()) else card
             client.postgrest["flashcards"].insert(if (card.id.isEmpty() || card.id.length > 20) getJsonWithoutId(newCard) else newCard)
         } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
@@ -836,7 +799,6 @@ class AuraRepository {
                     filter { eq("id", cardId) }
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
             }
         }
     }
@@ -875,7 +837,6 @@ class AuraRepository {
                 client.postgrest["video_progress"].insert(getJsonWithoutId(progress.copy(lastWatchedAt = System.currentTimeMillis())))
             }
         } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
@@ -913,7 +874,6 @@ class AuraRepository {
                 client.postgrest["book_progress"].insert(getJsonWithoutId(progress.copy(lastReadAt = System.currentTimeMillis())))
             }
         } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
@@ -928,7 +888,6 @@ class AuraRepository {
             }
             query.decodeList<com.example.data.models.Quiz>().sortedByDescending { it.createdAt }
         } catch (e: Exception) {
-            e.printStackTrace()
             emptyList()
         }
     }
@@ -940,7 +899,6 @@ class AuraRepository {
             val inserted = result.decodeSingle<com.example.data.models.Quiz>()
             inserted.id
         } catch (e: Exception) {
-            e.printStackTrace()
             ""
         }
     }
@@ -949,7 +907,8 @@ class AuraRepository {
         if (quizId.isNotEmpty()) {
             try {
                 client.postgrest["quizzes"].delete { filter { eq("id", quizId) } }
-            } catch (e: Exception) { e.printStackTrace() }
+            } catch (e: Exception) {
+            }
         }
     }
 
@@ -959,7 +918,6 @@ class AuraRepository {
                 filter { eq("quizId", quizId) }
             }.decodeList<com.example.data.models.QuizQuestion>().sortedBy { it.order }
         } catch (e: Exception) {
-            e.printStackTrace()
             emptyList()
         }
     }
@@ -972,7 +930,6 @@ class AuraRepository {
                 client.postgrest["quiz_questions"].insert(getJsonListWithoutId(newQuestions))
             }
         } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
@@ -987,7 +944,6 @@ class AuraRepository {
                 awardPoints(result.userId, pointsToAward, "Quiz: ${result.score}/${result.totalQuestions}")
             }
         } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
@@ -1013,7 +969,6 @@ class AuraRepository {
             updateUserProfile(updatedUser)
             checkAndAwardBadges(updatedUser)
         } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
@@ -1068,7 +1023,6 @@ class AuraRepository {
                 )
             }
         } catch (e: Exception) {
-            e.printStackTrace()
             emptyList()
         }
     }
@@ -1079,7 +1033,6 @@ class AuraRepository {
                 filter { eq("userId", userId) }
             }.decodeList<com.example.data.models.QuizResult>().sortedByDescending { it.createdAt }
         } catch (e: Exception) {
-            e.printStackTrace()
             emptyList()
         }
     }
@@ -1094,8 +1047,19 @@ class AuraRepository {
 
     suspend fun addExamBoard(board: com.example.ui.profile.BoardResult) {
         try {
-            val newBoard = if (board.id.isEmpty()) board.copy(createdAt = System.currentTimeMillis()) else board
-            client.postgrest["exam_boards"].insert(if (board.id.isEmpty() || board.id.length > 20) getJsonWithoutId(newBoard) else newBoard)
+            val createdAt = if (board.createdAt == 0L) System.currentTimeMillis() else board.createdAt
+            
+            if (board.id.isEmpty() || board.id.length > 20) {
+                val request = com.example.ui.profile.BoardResultRequest(
+                    board = board.board,
+                    website = board.website,
+                    createdAt = createdAt
+                )
+                client.postgrest["exam_boards"].insert(request)
+            } else {
+                val newBoard = board.copy(createdAt = createdAt)
+                client.postgrest["exam_boards"].insert(newBoard)
+            }
             notifyBoardsChanged()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -1126,8 +1090,6 @@ class AuraRepository {
                 notifyBoardsChanged()
             }
         } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
         }
     }
 
@@ -1137,8 +1099,6 @@ class AuraRepository {
             client.postgrest["notifications"].insert(if (notification.id.isEmpty() || notification.id.length > 20) getJsonWithoutId(notification) else notification)
             notifyNotificationsChanged()
         } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
         }
     }
 
@@ -1148,7 +1108,6 @@ class AuraRepository {
             bucket.upload(fileName, imageBytes) { upsert = true }
             bucket.publicUrl(fileName)
         } catch (e: Exception) {
-            e.printStackTrace()
             ""
         }
     }
@@ -1159,7 +1118,6 @@ class AuraRepository {
             bucket.upload(fileName, imageBytes) { upsert = true }
             bucket.publicUrl(fileName)
         } catch (e: Exception) {
-            e.printStackTrace()
             ""
         }
     }
@@ -1170,7 +1128,6 @@ class AuraRepository {
             bucket.upload(fileName, imageBytes) { upsert = true }
             bucket.publicUrl(fileName)
         } catch (e: Exception) {
-            e.printStackTrace()
             ""
         }
     }
@@ -1181,7 +1138,6 @@ class AuraRepository {
             bucket.upload(fileName, pdfBytes) { upsert = true }
             bucket.publicUrl(fileName)
         } catch (e: Exception) {
-            e.printStackTrace()
             // Fallback to "covers" bucket
             try {
                 val bucket = client.storage["covers"]
@@ -1209,7 +1165,6 @@ class AuraRepository {
                 }
                 channel.subscribe()
             } catch (e: Exception) {
-                e.printStackTrace()
             }
         }
     }
@@ -1220,7 +1175,6 @@ class AuraRepository {
             client.postgrest["feedback"].insert(if (feedback.id.isEmpty() || feedback.id.length > 20) getJsonWithoutId(feedback) else feedback)
             true
         } catch (e: Exception) {
-            e.printStackTrace()
             false
         }
     }
@@ -1231,7 +1185,6 @@ class AuraRepository {
                 order("createdAt", io.github.jan.supabase.postgrest.query.Order.DESCENDING)
             }.decodeList<com.example.data.models.Feedback>()
         } catch (e: Exception) {
-            e.printStackTrace()
             emptyList()
         }
     }
@@ -1248,7 +1201,6 @@ class AuraRepository {
             }
             true
         } catch (e: Exception) {
-            e.printStackTrace()
             false
         }
     }
@@ -1262,7 +1214,6 @@ class AuraRepository {
             }
             true
         } catch (e: Exception) {
-            e.printStackTrace()
             false
         }
     }
@@ -1296,7 +1247,6 @@ class AuraRepository {
                 false
             }
         } catch (e: Exception) {
-            e.printStackTrace()
             false
         }
     }
@@ -1356,7 +1306,6 @@ class AuraRepository {
             bucket.upload(fileName, imageBytes) { upsert = true }
             bucket.publicUrl(fileName)
         } catch (e: Exception) {
-            e.printStackTrace()
             ""
         }
     }
@@ -1368,7 +1317,6 @@ class AuraRepository {
                 client.storage["post-images"].delete(fileName)
             }
         } catch(e: Exception) {
-            e.printStackTrace()
         }
     }
 
