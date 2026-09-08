@@ -29,6 +29,7 @@ data class StudyTool(
 )
 
 val allStudyTools = listOf(
+    StudyTool("local_scheduler", "Local AI Scheduler", "Generate a personalized weekly study schedule offline", Icons.Filled.AutoAwesome, true),
     StudyTool("planner", "Study Planner", "Organize your study schedule and goals", Icons.Filled.CalendarMonth),
     StudyTool("countdown", "Exam Countdown", "Track remaining days for your upcoming exams", Icons.Filled.Event),
     StudyTool("pdf_reader", "PDF Reader", "Open and read digital PDF books offline", Icons.Filled.PictureAsPdf),
@@ -96,6 +97,7 @@ fun StudyScreen(
                 items(filteredTools) { tool ->
                     ToolCard(tool = tool) {
                         when (tool.id) {
+                            "local_scheduler" -> rootNavController.navigate("local_scheduler")
                             "planner" -> rootNavController.navigate("study_planner")
                             "countdown" -> navController.navigate("exam_countdown")
                             "pdf_reader" -> rootNavController.navigate("pdf_tool")

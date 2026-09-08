@@ -604,7 +604,7 @@ fun GlobalSearchScreen(
                         },
                         edgePadding = 16.dp
                     ) {
-                        val tabs = listOf("All", "Posts", "Books", "Question Papers", "Videos", "Users", "Results")
+                        val tabs = listOf("All", "Tools", "Posts", "Books", "Question Papers", "Videos", "Users", "Results")
                         tabs.forEachIndexed { index, title ->
                             Tab(
                                 selected = selectedTab == index,
@@ -695,6 +695,30 @@ fun GlobalSearchScreen(
                         when (selectedTab) {
                             0 -> { // All Tab
                                 if (scoredPosts.isNotEmpty()) {
+                                    if (scoredTools.isNotEmpty()) {
+                                        item { ResultHeader("Tools") }
+                                        items(scoredTools.take(3)) { tool ->
+                                            SearchResultToolCard(tool = tool) {
+                                                when (tool.id) {
+                                                    "local_scheduler" -> rootNavController.navigate("local_scheduler")
+                                                    "planner" -> rootNavController.navigate("study_planner")
+                                                    "countdown" -> rootNavController.navigate("exam_countdown")
+                                                    "pdf_reader" -> rootNavController.navigate("pdf_tool")
+                                                    "map_agent" -> rootNavController.navigate("map_agent")
+                                                    "translate" -> rootNavController.navigate("notes_translate")
+                                                    "calculator" -> rootNavController.navigate("calculator")
+                                                    "result_analysis" -> rootNavController.navigate("result_analysis")
+                                                    "progress" -> rootNavController.navigate("progress")
+                                                    "weekly_report" -> rootNavController.navigate("weekly_report")
+                                                    "ai_homework" -> rootNavController.navigate("ai_chat?prompt=" + android.net.Uri.encode("Hey Gemini AI! I need help with my homework. Can you help me solve it step-by-step and explain the core concepts clearly?"))
+                                                    "ai_doubt" -> rootNavController.navigate("ai_chat?prompt=" + android.net.Uri.encode("Hi Gemini AI! I have a specific doubt in my syllabus. Can you clarify it with clean explanations and examples?"))
+                                                    "ai_summarizer" -> rootNavController.navigate("ai_chat?prompt=" + android.net.Uri.encode("Hello! Can you help me summarize this educational topic or text into concise, high-yield revision notes?"))
+                                                    "ai_essay" -> rootNavController.navigate("ai_chat?prompt=" + android.net.Uri.encode("Hi! Can you guide me in writing or structuring a polished academic essay on my topic?"))
+                                                    "ai_mcq" -> rootNavController.navigate("ai_chat?prompt=" + android.net.Uri.encode("Hey Gemini! Can you generate a set of practice Multiple Choice Questions (MCQs) on my topic with answers and brief explanations?"))
+                                                }
+                                            }
+                                        }
+                                    }
                                     item { ResultHeader("Posts") }
                                     items(scoredPosts.take(3)) { post ->
                                         com.example.ui.components.PostCard(post = post) {
@@ -803,14 +827,39 @@ fun GlobalSearchScreen(
                                     com.example.ui.components.NativeAdViewComposable()
                                 }
                             }
-                            1 -> { // Posts
+                            1 -> { // Tools
+                                if (scoredTools.isNotEmpty()) {
+                                    items(scoredTools) { tool ->
+                                        SearchResultToolCard(tool = tool) {
+                                            when (tool.id) {
+                                                "local_scheduler" -> rootNavController.navigate("local_scheduler")
+                                                "planner" -> rootNavController.navigate("study_planner")
+                                                "countdown" -> rootNavController.navigate("exam_countdown")
+                                                "pdf_reader" -> rootNavController.navigate("pdf_tool")
+                                                "map_agent" -> rootNavController.navigate("map_agent")
+                                                "translate" -> rootNavController.navigate("notes_translate")
+                                                "calculator" -> rootNavController.navigate("calculator")
+                                                "result_analysis" -> rootNavController.navigate("result_analysis")
+                                                "progress" -> rootNavController.navigate("progress")
+                                                "weekly_report" -> rootNavController.navigate("weekly_report")
+                                                "ai_homework" -> rootNavController.navigate("ai_chat?prompt=" + android.net.Uri.encode("Hey Gemini AI! I need help with my homework. Can you help me solve it step-by-step and explain the core concepts clearly?"))
+                                                "ai_doubt" -> rootNavController.navigate("ai_chat?prompt=" + android.net.Uri.encode("Hi Gemini AI! I have a specific doubt in my syllabus. Can you clarify it with clean explanations and examples?"))
+                                                "ai_summarizer" -> rootNavController.navigate("ai_chat?prompt=" + android.net.Uri.encode("Hello! Can you help me summarize this educational topic or text into concise, high-yield revision notes?"))
+                                                "ai_essay" -> rootNavController.navigate("ai_chat?prompt=" + android.net.Uri.encode("Hi! Can you guide me in writing or structuring a polished academic essay on my topic?"))
+                                                "ai_mcq" -> rootNavController.navigate("ai_chat?prompt=" + android.net.Uri.encode("Hey Gemini! Can you generate a set of practice Multiple Choice Questions (MCQs) on my topic with answers and brief explanations?"))
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            2 -> { // Posts
                                 items(scoredPosts) { post ->
                                     com.example.ui.components.PostCard(post = post) {
                                         rootNavController.navigate("post_detail/${post.id}")
                                     }
                                 }
                             }
-                            2 -> { // Books
+                            3 -> { // Books
                                 items(scoredBooks) { book ->
                                     GoogleSearchCard(
                                         category = "Book",
@@ -827,7 +876,7 @@ fun GlobalSearchScreen(
                                     )
                                 }
                             }
-                            3 -> { // Question Papers
+                            4 -> { // Question Papers
                                 items(scoredQuestionPapers) { paper ->
                                     GoogleSearchCard(
                                         category = "Question Paper",
@@ -844,7 +893,7 @@ fun GlobalSearchScreen(
                                     )
                                 }
                             }
-                            4 -> { // Videos
+                            5 -> { // Videos
                                 items(scoredVideos) { video ->
                                     GoogleSearchCard(
                                         category = "Video",
@@ -858,14 +907,14 @@ fun GlobalSearchScreen(
                                     )
                                 }
                             }
-                            5 -> { // Users
+                            6 -> { // Users
                                 items(userSearchResults) { user ->
                                     UserSearchCard(user) {
                                         rootNavController.navigate("profile_details/${user.id}")
                                     }
                                 }
                             }
-                            6 -> { // Results
+                            7 -> { // Results
                                 items(scoredBoards) { b ->
                                     GoogleSearchCard(
                                         category = "Board Result",
@@ -995,6 +1044,47 @@ fun UserSearchCard(user: User, onClick: () -> Unit) {
             Column {
                 Text(user.name, color = Color.White, fontWeight = FontWeight.Bold)
                 Text(user.email, color = Color(0xFF94A3B8), style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+@Composable
+fun SearchResultToolCard(tool: StudyTool, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(if (tool.isAi) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(tool.icon, contentDescription = null, tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Column {
+                Text(
+                    text = tool.title,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = tool.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }
