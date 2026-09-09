@@ -1,5 +1,6 @@
 package com.example
 
+import androidx.compose.material.icons.filled.AutoAwesome
 import android.os.Build
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -68,6 +69,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     object Books : Screen("books", "Books", Icons.Outlined.Book)
     object Chat : Screen("chat_list", "Chat", Icons.Filled.Chat)
     object Profile : Screen("profile", "Profile", Icons.Filled.Person)
+    object AuraAi : Screen("local_ai_chat", "Aura AI", Icons.Filled.AutoAwesome)
 }
 
 val items = listOf(
@@ -75,7 +77,8 @@ val items = listOf(
     Screen.QuestionPapers,
     Screen.Videos,
     Screen.Books,
-    Screen.Profile
+    Screen.Profile,
+    Screen.AuraAi
 )
 
 @Composable
@@ -246,6 +249,7 @@ fun AuraLearningApp(themeViewModel: ThemeViewModel? = null, initialDeepLink: Str
         composable("admin_upload_websites") { com.example.ui.admin.AdminWebsiteUploadScreen(rootNavController) }
         composable("admin_home_customization") { com.example.ui.admin.AdminHomeCustomizationScreen(rootNavController) }
         composable("admin_add_banner") { com.example.ui.admin.AdminAddEditBannerScreen(rootNavController) }
+        composable("aura_ai_settings") { com.example.ui.ai.AuraAiSettingsScreen(rootNavController) }
         composable(
             "admin_edit_banner/{bannerId}",
             arguments = listOf(androidx.navigation.navArgument("bannerId") { type = androidx.navigation.NavType.StringType })
@@ -644,6 +648,7 @@ fun MainScreen(
                     com.example.ui.profile.ProfileDetailsScreen(rootNavController, authViewModel, null)
                 }
                 composable(Screen.Profile.route) { ProfileScreen(navController, authViewModel, rootNavController, themeViewModel) }
+                composable(Screen.AuraAi.route) { com.example.ui.ai.LocalAiChatScreen(navController, rootNavController) }
             }
         }
     }
