@@ -475,6 +475,7 @@ fun AuraLearningApp(themeViewModel: ThemeViewModel? = null, initialDeepLink: Str
         composable("feedback") { com.example.ui.feedback.FeedbackScreen(rootNavController, authViewModel) }
         composable("admin_feedback_management") { com.example.ui.admin.AdminFeedbackManagementScreen(rootNavController) }
         composable("admin_feedback_analytics") { com.example.ui.admin.AdminFeedbackAnalyticsScreen(rootNavController) }
+        composable("admin_app_updates") { com.example.ui.admin.AdminAppUpdatesScreen(rootNavController) }
 
         composable("pdf_tool") { com.example.ui.pdf.screens.PdfToolScreen(rootNavController) }
         composable("pdf_builder") { com.example.ui.pdf.screens.PdfBuilderScreen(rootNavController) }

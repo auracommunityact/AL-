@@ -264,3 +264,19 @@ data class Website(
     @Serializable(with = TimestampSerializer::class)
     val createdAt: Long = 0L
 )
+
+@Serializable
+data class AppUpdateConfig(
+    val id: String = "",
+    @SerialName("latest_version_name") val latestVersionName: String = "",
+    @SerialName("latest_version_code") val latestVersionCode: Int = 1,
+    @SerialName("minimum_supported_version_code") val minimumSupportedVersionCode: Int = 1,
+    @SerialName("update_title") val updateTitle: String = "New Update Available",
+    @SerialName("update_message") val updateMessage: String = "A new version of the app is available. Please update to enjoy the latest features and bug fixes.",
+    val changelog: String = "",
+    @SerialName("download_url") val downloadUrl: String = "https://aura-learning.en.uptodown.com/android",
+    @SerialName("force_update") val forceUpdate: Boolean = false,
+    @SerialName("is_active") val isActive: Boolean = true,
+    @SerialName("created_at") val createdAt: String? = null,
+    @SerialName("updated_at") val updatedAt: String? = null
+)

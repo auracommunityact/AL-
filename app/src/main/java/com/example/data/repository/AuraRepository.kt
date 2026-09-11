@@ -32,6 +32,21 @@ import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 
 class AuraRepository {
+    suspend fun getLatestAppUpdateConfig(): com.example.data.models.AppUpdateConfig? {
+        return try {
+            client.postgrest["app_updates"]
+                .select { 
+                    filter { eq("is_active", true) }
+                    order("latest_version_code", io.github.jan.supabase.postgrest.query.Order.DESCENDING)
+                    limit(1)
+                }
+                .decodeSingleOrNull<com.example.data.models.AppUpdateConfig>()
+        } catch (e: Exception) {
+            android.util.Log.e("AuraRepository", "Error fetching app_updates", e)
+            null
+        }
+    }
+
     private val lenientJson = Json { encodeDefaults = true; ignoreUnknownKeys = true }
 
     private inline fun <reified T : Any> getJsonWithoutId(item: T): Map<String, kotlinx.serialization.json.JsonElement> {

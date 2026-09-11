@@ -300,6 +300,20 @@ fun AdminDashboardScreen(navController: NavController, authViewModel: AuthViewMo
                 }
             }
 
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                CompactActionCard(
+                    title = "App Updates",
+                    icon = Icons.Filled.Language,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    navController.navigate("admin_app_updates")
+                }
+                Spacer(modifier = Modifier.weight(1f))
+            }
+            Spacer(modifier = Modifier.height(16.dp))
             Spacer(modifier = Modifier.height(16.dp))
 
             // Tab row to switch between lists

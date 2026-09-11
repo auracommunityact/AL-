@@ -132,10 +132,11 @@ fun ProfileSettingsScreen(navController: NavController, authViewModel: AuthViewM
                     subtitle = "Manage preferences, sound & vibration",
                     onClick = { navController.navigate("notification_settings") }
                 )
-                com.example.ui.update.UpdateSettingsItem()
                 HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
                 SettingsItem(
                     icon = Icons.Filled.CloudUpload,
+                com.example.ui.update.UpdateSettingsItem()
+                HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
                     title = "Check Upload",
                     subtitle = "Open latest uploads on website",
                     onClick = {

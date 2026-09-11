@@ -61,6 +61,11 @@ object ViewModelFactory : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             return com.example.ui.admin.AdminFeedbackViewModel(repository) as T
         }
+        if (modelClass.isAssignableFrom(com.example.ui.update.UpdateViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return com.example.ui.update.UpdateViewModel(repository) as T
+        }
+
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

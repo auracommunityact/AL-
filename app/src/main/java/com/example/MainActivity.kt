@@ -130,6 +130,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     com.example.ui.components.ErrorBoundary {
                         AuraLearningApp(themeViewModel = themeViewModel, initialDeepLink = initialDeepLink)
+                        com.example.ui.update.AppUpdateDialog()
                     }
                 }
             }
