@@ -140,7 +140,6 @@ class AuraRepository {
                     or {
                         ilike("name", "%$query%")
                         ilike("email", "%$query%")
-                        ilike("id", "%$query%")
                         ilike("mobileNumber", "%$query%")
                         ilike("studentId", "%$query%") // Also adding studentId as it's common for academic apps
                     }

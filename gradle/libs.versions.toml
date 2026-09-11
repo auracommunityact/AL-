@@ -1,4 +1,5 @@
 [versions]
+workRuntimeKtx = "2.9.0"
 agp = "8.3.2"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -47,6 +48,7 @@ splashscreen = "1.0.1"
 userMessagingPlatform = "3.0.0"
 
 [libraries]
+androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workRuntimeKtx" }
 user-messaging-platform = { group = "com.google.android.ump", name = "user-messaging-platform", version.ref = "userMessagingPlatform" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

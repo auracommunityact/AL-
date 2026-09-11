@@ -28,6 +28,12 @@ class HomeViewModel(private val repository: AuraRepository) : ViewModel() {
     private val _posts = MutableStateFlow<List<com.example.data.models.Post>>(emptyList())
     val posts: StateFlow<List<com.example.data.models.Post>> = _posts.asStateFlow()
 
+    private val _mixedFeed = MutableStateFlow<List<FeedItem>>(emptyList())
+    val mixedFeed: StateFlow<List<FeedItem>> = _mixedFeed.asStateFlow()
+
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
     private val _recentBooks = MutableStateFlow<List<Book>>(emptyList())
     val recentBooks: StateFlow<List<Book>> = _recentBooks.asStateFlow()
 
@@ -129,6 +135,14 @@ class HomeViewModel(private val repository: AuraRepository) : ViewModel() {
         }
     }
 
+    fun refreshData() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            fetchData()
+            _isRefreshing.value = false
+        }
+    }
+
     fun fetchData() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -221,6 +235,13 @@ class HomeViewModel(private val repository: AuraRepository) : ViewModel() {
                         .mapNotNull { bp -> fetchedBooks.find { it.id == bp.bookId } }
                         .take(5)
                     _continueReading.value = cBooks
+
+                    _mixedFeed.value = FeedGenerator.generateMixedFeed(
+                        banners = _banners.value,
+                        posts = _posts.value,
+                        videos = _allVideos.value,
+                        books = _allBooks.value
+                    )
                 }
             } catch (e: Exception) {
                 android.util.Log.e("HomeViewModel", "Error loading user progress", e)
