@@ -124,6 +124,10 @@ data class Video(
     val order: Int = 0,
     @Serializable(with = SafeStringListSerializer::class)
     val relatedBooks: List<String> = emptyList(),
+    @SerialName("download_enabled")
+    val downloadEnabled: Boolean = false,
+    @SerialName("authorized_download_url")
+    val authorizedDownloadUrl: String = "",
     @Serializable(with = TimestampSerializer::class)
     val createdAt: Long = 0L
 )
@@ -226,6 +230,7 @@ data class BookProgress(
 data class QuestionPaper(
     @Serializable(with = StringOrNumericSerializer::class)
     val id: String = "",
+    @SerialName("class_name")
     val className: String = "",
     val subject: String = "",
     val title: String = "",
@@ -234,9 +239,13 @@ data class QuestionPaper(
     val section: String = "",
     val board: String = "",
     val year: String = "",
+    @SerialName("pdf_url")
     val pdfUrl: String = "",
+    @SerialName("file_size")
     val fileSize: String = "",
+    @SerialName("total_pages")
     val totalPages: Int = 0,
+    @SerialName("created_at")
     @Serializable(with = TimestampSerializer::class)
     val createdAt: Long = 0L
 )
@@ -248,7 +257,9 @@ data class QuestionPaperSection(
     val description: String = "",
     val thumbnail: String = "",
     val order: Int = 0,
+    @SerialName("is_active")
     val isActive: Boolean = true,
+    @SerialName("created_at")
     @Serializable(with = TimestampSerializer::class)
     val createdAt: Long = 0L
 )

@@ -605,6 +605,7 @@ fun MainScreen(
                 modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
             ) {
                 composable(Screen.Home.route) { HomeScreen(navController, authViewModel, rootNavController) }
+                composable("aura_ai_chat") { com.example.ai.ui.AuraAiChatScreen(navController) }
                 composable(
                     "global_search?query={query}",
                     arguments = listOf(androidx.navigation.navArgument("query") { defaultValue = "" })

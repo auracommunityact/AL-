@@ -130,7 +130,8 @@ fun QuestionPaperListingScreen(
                     SelectionLevel.PAPERS -> {
                         PapersList(papersForSubject) { paper ->
                             com.example.utils.AdsManager.showInterstitial(context) {
-                                navController.navigate("pdf_viewer/${paper.id}")
+                                val encodedUrl = java.net.URLEncoder.encode(paper.pdfUrl, "UTF-8")
+                            navController.navigate("pdf_viewer?url=$encodedUrl")
                             }
                         }
                     }

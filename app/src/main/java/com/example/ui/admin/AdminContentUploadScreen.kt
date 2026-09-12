@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Preview
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.CloudUpload
 import android.provider.OpenableColumns
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.*
@@ -83,6 +84,9 @@ fun AdminContentUploadScreen(navController: NavController, isVideo: Boolean) {
 
     var selectedPdfUri by remember { mutableStateOf<Uri?>(null) }
     var selectedPdfName by remember { mutableStateOf("") }
+    var downloadEnabled by remember { mutableStateOf(false) }
+    var selectedVideoUri by remember { mutableStateOf<Uri?>(null) }
+    var selectedVideoName by remember { mutableStateOf("") }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -100,6 +104,16 @@ fun AdminContentUploadScreen(navController: NavController, isVideo: Boolean) {
             if (title.isBlank()) {
                 title = name.substringBeforeLast(".")
             }
+        }
+    }
+    
+    val videoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        selectedVideoUri = uri
+        if (uri != null) {
+            val name = getFileName(context, uri) ?: "Selected Video.mp4"
+            selectedVideoName = name
         }
     }
 
@@ -220,6 +234,29 @@ fun AdminContentUploadScreen(navController: NavController, isVideo: Boolean) {
                     label = { Text("Teacher Name") },
                     modifier = Modifier.fillMaxWidth()
                 )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    Checkbox(checked = downloadEnabled, onCheckedChange = { downloadEnabled = it })
+                    Text("Enable Download (Authorized Video)")
+                }
+                
+                if (downloadEnabled) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().clickable { videoPickerLauncher.launch("video/*") },
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+                        ) {
+                            Icon(androidx.compose.material.icons.Icons.Filled.CloudUpload, contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(text = if (selectedVideoUri != null) selectedVideoName else "Tap to Select Authorized Video (MP4)")
+                        }
+                    }
+                }
             }
             
             ImagePickerSection(
@@ -387,6 +424,18 @@ fun AdminContentUploadScreen(navController: NavController, isVideo: Boolean) {
                                     } else {
                                         "https://www.youtube.com/watch?v=$finalContentUrl"
                                     }
+                                    
+                                    var authorizedUrl = ""
+                                    if (downloadEnabled && selectedVideoUri != null) {
+                                        val bytes = context.contentResolver.openInputStream(selectedVideoUri!!)?.readBytes()
+                                        if (bytes != null) {
+                                            authorizedUrl = repository.uploadVideoFile(
+                                                videoBytes = bytes,
+                                                fileName = "${System.currentTimeMillis()}_${selectedVideoName}"
+                                            )
+                                        }
+                                    }
+
                                     val video = Video(
                                         title = title,
                                         description = description,
@@ -399,6 +448,8 @@ fun AdminContentUploadScreen(navController: NavController, isVideo: Boolean) {
                                         partNumber = 1,
                                         teacher = teacher.ifEmpty { "Aura Teacher" },
                                         duration = "15:00",
+                                        downloadEnabled = downloadEnabled,
+                                        authorizedDownloadUrl = authorizedUrl,
                                         createdAt = System.currentTimeMillis()
                                     )
                                     repository.addVideo(video)

@@ -1351,4 +1351,15 @@ class AuraRepository {
             }
         }
     }
+
+    suspend fun uploadVideoFile(videoBytes: ByteArray, fileName: String): String {
+        return try {
+            val bucket = client.storage["aura-learning-videos"]
+            bucket.upload(fileName, videoBytes) { upsert = true }
+            bucket.publicUrl(fileName)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            ""
+        }
+    }
 }

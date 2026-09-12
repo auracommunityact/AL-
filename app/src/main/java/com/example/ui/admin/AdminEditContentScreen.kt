@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Upload
 import android.provider.OpenableColumns
 import androidx.compose.material3.*
@@ -64,6 +65,9 @@ fun AdminEditContentScreen(navController: NavController, id: String, isVideo: Bo
 
     var selectedPdfUri by remember { mutableStateOf<Uri?>(null) }
     var selectedPdfName by remember { mutableStateOf("") }
+    var downloadEnabled by remember { mutableStateOf(false) }
+    var selectedVideoUri by remember { mutableStateOf<Uri?>(null) }
+    var selectedVideoName by remember { mutableStateOf("") }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -83,6 +87,15 @@ fun AdminEditContentScreen(navController: NavController, id: String, isVideo: Bo
             }
         }
     }
+    val videoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: android.net.Uri? ->
+        selectedVideoUri = uri
+        if (uri != null) {
+            val name = getFileName(context, uri) ?: "Selected Video.mp4"
+            selectedVideoName = name
+        }
+    }
 
     // Load initial content
     LaunchedEffect(id) {
@@ -99,6 +112,7 @@ fun AdminEditContentScreen(navController: NavController, id: String, isVideo: Bo
                         imageUrl = video.thumbnail
                         contentUrl = video.videoUrl
                         teacher = video.teacher
+                        downloadEnabled = video.downloadEnabled
                     } else {
                         Toast.makeText(context, "Video not found", Toast.LENGTH_SHORT).show()
                         navController.popBackStack()
@@ -248,6 +262,29 @@ fun AdminEditContentScreen(navController: NavController, id: String, isVideo: Bo
                         label = { Text("Teacher Name") },
                         modifier = Modifier.fillMaxWidth()
                     )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        Checkbox(checked = downloadEnabled, onCheckedChange = { downloadEnabled = it })
+                        Text("Enable Download (Authorized Video)")
+                    }
+                    
+                    if (downloadEnabled) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth().clickable { videoPickerLauncher.launch("video/*") },
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+                            ) {
+                                Icon(androidx.compose.material.icons.Icons.Filled.CloudUpload, contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(text = if (selectedVideoUri != null) selectedVideoName else "Tap to Select Authorized Video (MP4) - Optional if keeping existing")
+                            }
+                        }
+                    }
                 }
                 
                 Text(if (isVideo) "Thumbnail Image" else "Cover Image", style = MaterialTheme.typography.titleMedium)
@@ -433,6 +470,21 @@ fun AdminEditContentScreen(navController: NavController, id: String, isVideo: Bo
                                     } else {
                                         "https://www.youtube.com/watch?v=$finalContentUrl"
                                     }
+                                    
+                                    val oldVideo = repository.getVideoById(id)
+                                    var authorizedUrl = oldVideo?.authorizedDownloadUrl ?: ""
+                                    if (downloadEnabled && selectedVideoUri != null) {
+                                        val bytes = context.contentResolver.openInputStream(selectedVideoUri!!)?.readBytes()
+                                        if (bytes != null) {
+                                            authorizedUrl = repository.uploadVideoFile(
+                                                videoBytes = bytes,
+                                                fileName = "${System.currentTimeMillis()}_${selectedVideoName}"
+                                            )
+                                        }
+                                    } else if (!downloadEnabled) {
+                                        authorizedUrl = ""
+                                    }
+
                                     val updatedVideo = Video(
                                         id = id,
                                         title = title,
@@ -446,7 +498,9 @@ fun AdminEditContentScreen(navController: NavController, id: String, isVideo: Bo
                                         partNumber = 1,
                                         teacher = teacher.ifEmpty { "Aura Teacher" },
                                         duration = "15:00",
-                                        createdAt = System.currentTimeMillis()
+                                        downloadEnabled = downloadEnabled,
+                                        authorizedDownloadUrl = authorizedUrl,
+                                        createdAt = oldVideo?.createdAt ?: System.currentTimeMillis()
                                     )
                                     repository.updateVideo(updatedVideo)
                                     Toast.makeText(context, "Video updated successfully", Toast.LENGTH_SHORT).show()

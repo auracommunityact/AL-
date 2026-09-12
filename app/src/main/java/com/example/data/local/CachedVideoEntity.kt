@@ -22,6 +22,8 @@ data class CachedVideoEntity(
     val duration: String,
     val videoOrder: Int,
     val relatedBooksJson: String,
+    val downloadEnabled: Boolean,
+    val authorizedDownloadUrl: String,
     val cachedAt: Long
 ) {
     fun toVideo() = Video(
@@ -39,6 +41,8 @@ data class CachedVideoEntity(
         duration = duration,
         order = videoOrder,
         relatedBooks = try { Json.decodeFromString(relatedBooksJson) } catch (e: Exception) { emptyList() },
+        downloadEnabled = downloadEnabled,
+        authorizedDownloadUrl = authorizedDownloadUrl,
         createdAt = cachedAt
     )
 
@@ -58,6 +62,8 @@ data class CachedVideoEntity(
             duration = video.duration,
             videoOrder = video.order,
             relatedBooksJson = try { Json.encodeToString(video.relatedBooks) } catch (e: Exception) { "[]" },
+            downloadEnabled = video.downloadEnabled,
+            authorizedDownloadUrl = video.authorizedDownloadUrl,
             cachedAt = if (video.createdAt > 0L) video.createdAt else System.currentTimeMillis()
         )
     }
