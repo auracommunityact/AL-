@@ -78,7 +78,7 @@ val items = listOf(
     Screen.Videos,
     Screen.Books,
     Screen.Profile,
-    Screen.AuraAi
+    Screen.Chat
 )
 
 @Composable
