@@ -1,4 +1,5 @@
-package com.example.ai.tools
+with open("app/src/main/java/com/example/ai/tools/AuraToolRegistry.kt", "w") as f:
+    f.write(r"""package com.example.ai.tools
 
 import org.json.JSONObject
 
@@ -61,3 +62,4 @@ class AuraToolRegistry {
         }
     }
 }
+""")

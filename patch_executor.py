@@ -1,4 +1,5 @@
-package com.example.ai.tools
+with open("app/src/main/java/com/example/ai/tools/AuraToolExecutor.kt", "w") as f:
+    f.write("""package com.example.ai.tools
 
 import android.content.Context
 import android.net.Uri
@@ -150,3 +151,4 @@ class AuraToolExecutor(private val context: Context) : ToolExecutor {
         }
     }
 }
+""")

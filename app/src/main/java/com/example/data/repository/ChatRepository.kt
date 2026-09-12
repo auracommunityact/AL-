@@ -112,20 +112,22 @@ class ChatRepository {
         if (commonConvoId != null) return commonConvoId
         
         // Create new
-        val convoId = java.util.UUID.randomUUID().toString()
-        val newConvo = Conversation(
-            id = convoId,
+                val newConvo = Conversation(
             name = otherUserName,
             lastMessageTime = System.currentTimeMillis()
         )
-        postgrest["conversations"].insert(if (newConvo.id.isEmpty() || newConvo.id.length > 20) getJsonWithoutId(newConvo) else newConvo)
+        val insertedConvo = postgrest["conversations"]
+            .insert(getJsonWithoutId(newConvo)) { select() }
+            .decodeSingle<Conversation>()
+            
+        val realConvoId = insertedConvo.id
         
         postgrest["conversation_members"].insert(getJsonListWithoutId(listOf(
-            ConversationMember(conversationId = convoId, userId = currentUserId),
-            ConversationMember(conversationId = convoId, userId = otherUserId)
+            ConversationMember(conversationId = realConvoId, userId = currentUserId),
+            ConversationMember(conversationId = realConvoId, userId = otherUserId)
         )))
         
-        return convoId
+        return realConvoId
     }
     
     fun subscribeToMessages(conversationId: String): Flow<Message> = callbackFlow {

@@ -3,102 +3,23 @@ import re
 with open("app/src/main/java/com/example/ai/chat/AuraAiViewModel.kt", "r") as f:
     content = f.read()
 
-replacement = """fun sendMessage(text: String) {
-        if (text.isBlank()) return
+# Add import
+content = content.replace("import com.example.ai.tools.AuraToolRegistry", "import com.example.ai.tools.AuraToolRegistry\nimport com.example.ai.tools.AuraToolValidator")
 
-        val userMessage = ChatMessageEntity(
-            id = UUID.randomUUID().toString(),
-            conversationId = conversationId,
-            role = "user",
-            content = text,
-            timestamp = System.currentTimeMillis()
-        )
+# Update constructor
+content = content.replace(
+    "class AuraAiViewModel(\n    private val memoryDao: AiMemoryDao,\n    private val llmEngine: LlmInferenceEngine,\n    private val toolRegistry: AuraToolRegistry,\n    private val toolExecutor: AuraToolExecutor\n) : ViewModel()",
+    "class AuraAiViewModel(\n    private val memoryDao: AiMemoryDao,\n    private val llmEngine: LlmInferenceEngine,\n    private val toolRegistry: AuraToolRegistry,\n    private val toolValidator: AuraToolValidator,\n    private val toolExecutor: AuraToolExecutor\n) : ViewModel()"
+)
 
-        viewModelScope.launch(Dispatchers.IO) {
-            memoryDao.insertMessage(userMessage)
-            _isTyping.value = true
-
-            // Slash Command Parser for direct tool execution
-            if (text.startsWith("/")) {
-                handleSlashCommand(text.substring(1).trim())
-                _isTyping.value = false
-                return@launch
-            }
-
-            if (_engineError.value != null) {
-                // If model is missing, emit error message directly to chat
-                val errorMsg = ChatMessageEntity(
-                    id = UUID.randomUUID().toString(),
-                    conversationId = conversationId,
-                    role = "model",
-                    content = "System Error: ${_engineError.value}",
-                    timestamp = System.currentTimeMillis()
-                )
-                memoryDao.insertMessage(errorMsg)
-                _isTyping.value = false
-                return@launch
-            }
-
-            try {
-                // Construct prompt
-                val prompt = buildPrompt(text)
-                
-                // Get inference response
-                var fullResponse = ""
-                llmEngine.generateResponse(prompt).collect { chunk ->
-                    fullResponse += chunk
-                }
-
-                // Parse and handle response (Check if tool call)
-                handleModelResponse(fullResponse)
-                
-            } catch (e: Exception) {
-                val errorMsg = ChatMessageEntity(
-                    id = UUID.randomUUID().toString(),
-                    conversationId = conversationId,
-                    role = "model",
-                    content = "Error during inference: ${e.message}",
-                    timestamp = System.currentTimeMillis()
-                )
-                memoryDao.insertMessage(errorMsg)
-            } finally {
-                _isTyping.value = false
-            }
-        }
-    }
-
-    private suspend fun handleSlashCommand(commandText: String) {
-        val lowerCmd = commandText.lowercase()
-        var toolName = ""
-        var parameters = JSONObject()
-
-        if (lowerCmd.startsWith("open aura learning")) {
-            toolName = "open_aura_learning"
-        } else if (lowerCmd.startsWith("open hindi books")) {
-            toolName = "open_learning_books"
-            parameters.put("subject", "Hindi")
-        } else if (lowerCmd.startsWith("open learning books") || lowerCmd.startsWith("open books")) {
-            toolName = "open_learning_books"
-        } else if (lowerCmd.startsWith("open question papers")) {
-            toolName = "open_question_papers"
-        } else if (lowerCmd.startsWith("open aura play")) {
-            toolName = "open_aura_play"
-        } else if (lowerCmd.startsWith("open aura community")) {
-            toolName = "open_aura_community"
-        } else if (lowerCmd.startsWith("search books ")) {
-            toolName = "search_learning_books"
-            parameters.put("query", commandText.removePrefix("search books ").trim())
-        } else if (lowerCmd.startsWith("search videos ")) {
-            toolName = "search_learning_videos"
-            parameters.put("query", commandText.removePrefix("search videos ").trim())
-        } else if (lowerCmd.startsWith("open camera")) {
-            toolName = "open_camera"
-        } else {
+# Update handleSlashCommand
+slash_replacement = """        val validationResult = toolValidator.validate(toolName, parameters)
+        if (validationResult is AuraToolValidator.ValidationResult.Invalid) {
             val errorMsg = ChatMessageEntity(
                 id = UUID.randomUUID().toString(),
                 conversationId = conversationId,
                 role = "model",
-                content = "Unrecognized slash command: /$commandText",
+                content = "Tool Validation Failed: ${validationResult.reason}",
                 timestamp = System.currentTimeMillis()
             )
             memoryDao.insertMessage(errorMsg)
@@ -114,50 +35,59 @@ replacement = """fun sendMessage(text: String) {
         )
         memoryDao.insertMessage(toolMsg)
 
-        val result = toolExecutor.execute(toolName, parameters)
-        when (result) {
-            is ToolResult.Success -> {
-                result.deepLink?.let { link ->
-                    _navigationEvent.value = link
-                }
-                val successMsg = ChatMessageEntity(
-                    id = UUID.randomUUID().toString(),
-                    conversationId = conversationId,
-                    role = "model",
-                    content = result.message,
-                    timestamp = System.currentTimeMillis()
-                )
-                memoryDao.insertMessage(successMsg)
-            }
-            is ToolResult.Error -> {
-                val errorMsg = ChatMessageEntity(
-                    id = UUID.randomUUID().toString(),
-                    conversationId = conversationId,
-                    role = "model",
-                    content = "Failed to execute command: ${result.error}",
-                    timestamp = System.currentTimeMillis()
-                )
-                memoryDao.insertMessage(errorMsg)
-            }
-            is ToolResult.RequiresConfirmation -> {
-                val confirmMsg = ChatMessageEntity(
-                    id = UUID.randomUUID().toString(),
-                    conversationId = conversationId,
-                    role = "model",
-                    content = "Action requires confirmation: ${result.prompt}",
-                    timestamp = System.currentTimeMillis()
-                )
-                memoryDao.insertMessage(confirmMsg)
-            }
-        }
-    }"""
+        val result = toolExecutor.execute(toolName, parameters)"""
 
-# Do substitution
-content = re.sub(
-    r"fun sendMessage\(text: String\) \{[\s\S]*?private fun buildPrompt\(userText: String\): String \{",
-    replacement + "\n\n    private fun buildPrompt(userText: String): String {",
-    content
-)
+content = content.replace("""        val toolMsg = ChatMessageEntity(
+            id = UUID.randomUUID().toString(),
+            conversationId = conversationId,
+            role = "tool",
+            content = "Executing: $toolName...",
+            timestamp = System.currentTimeMillis()
+        )
+        memoryDao.insertMessage(toolMsg)
+
+        val result = toolExecutor.execute(toolName, parameters)""", slash_replacement)
+
+# Update handleModelResponse
+model_replacement = """                    // Validate tool
+                    val validationResult = toolValidator.validate(toolName, parameters)
+                    if (validationResult is AuraToolValidator.ValidationResult.Invalid) {
+                        val errorMsg = ChatMessageEntity(
+                            id = UUID.randomUUID().toString(),
+                            conversationId = conversationId,
+                            role = "model",
+                            content = "Tool Validation Failed: ${validationResult.reason}",
+                            timestamp = System.currentTimeMillis()
+                        )
+                        memoryDao.insertMessage(errorMsg)
+                        return
+                    }
+
+                    // Add tool execution visual indicator message
+                    val toolMsg = ChatMessageEntity(
+                        id = UUID.randomUUID().toString(),
+                        conversationId = conversationId,
+                        role = "tool",
+                        content = "Executing: $toolName...",
+                        timestamp = System.currentTimeMillis()
+                    )
+                    memoryDao.insertMessage(toolMsg)
+
+                    // Execute tool
+                    val result = toolExecutor.execute(toolName, parameters)"""
+
+content = content.replace("""                    // Add tool execution visual indicator message
+                    val toolMsg = ChatMessageEntity(
+                        id = UUID.randomUUID().toString(),
+                        conversationId = conversationId,
+                        role = "tool",
+                        content = "Executing: $toolName...",
+                        timestamp = System.currentTimeMillis()
+                    )
+                    memoryDao.insertMessage(toolMsg)
+
+                    // Execute tool
+                    val result = toolExecutor.execute(toolName, parameters)""", model_replacement)
 
 with open("app/src/main/java/com/example/ai/chat/AuraAiViewModel.kt", "w") as f:
     f.write(content)

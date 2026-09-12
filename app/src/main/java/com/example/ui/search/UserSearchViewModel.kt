@@ -41,7 +41,7 @@ class UserSearchViewModel(
                     current[presence.userId] = presence
                     _userPresences.value = current
                 }
-            } catch (e: Exception) {
+            } catch (e: Exception) { e.printStackTrace(); android.util.Log.e("UserSearch", "Error: ", e)
                 e.printStackTrace()
             }
         }
@@ -70,7 +70,7 @@ class UserSearchViewModel(
                                 it.accountStatus != "Suspended" &&
                                 it.accountStatus != "Deleted"
                             }
-                        } catch (e: Exception) {
+                        } catch (e: Exception) { e.printStackTrace(); android.util.Log.e("UserSearch", "Error: ", e)
                             _searchResults.value = emptyList()
                         } finally {
                             _isLoading.value = false
@@ -93,7 +93,7 @@ class UserSearchViewModel(
             try {
                 val id = chatRepository.getOrCreateConversation(otherUserId, otherUserName)
                 onComplete(id)
-            } catch (e: Exception) {
+            } catch (e: Exception) { e.printStackTrace(); android.util.Log.e("UserSearch", "Error: ", e)
                 e.printStackTrace()
             } finally {
                 _isLoading.value = false

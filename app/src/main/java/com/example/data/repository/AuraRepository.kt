@@ -155,12 +155,11 @@ class AuraRepository {
                     or {
                         ilike("name", "%$query%")
                         ilike("email", "%$query%")
-                        ilike("mobileNumber", "%$query%")
-                        ilike("studentId", "%$query%") // Also adding studentId as it's common for academic apps
                     }
                 }
             }.decodeList<User>()
         } catch (e: Exception) {
+            android.util.Log.e("AuraRepository", "Error searching users: ${e.message}", e)
             emptyList()
         }
     }
@@ -171,6 +170,7 @@ class AuraRepository {
                 limit(100)
             }.decodeList<User>()
         } catch (e: Exception) {
+            android.util.Log.e("AuraRepository", "Error: ", e)
             emptyList()
         }
     }
@@ -510,6 +510,7 @@ class AuraRepository {
                 filter { eq("isEnabled", true) }
             }.decodeList<Banner>().sortedBy { it.order }
         } catch (e: Exception) {
+            android.util.Log.e("AuraRepository", "Error: ", e)
             emptyList()
         }
     }
@@ -520,6 +521,7 @@ class AuraRepository {
                 filter { eq("isEnabled", true) }
             }.decodeList<com.example.data.models.Announcement>().sortedByDescending { it.createdAt }
         } catch (e: Exception) {
+            android.util.Log.e("AuraRepository", "Error: ", e)
             emptyList()
         }
     }
@@ -639,6 +641,7 @@ class AuraRepository {
         return try {
             client.postgrest["question_paper_sections"].select().decodeList<QuestionPaperSection>().sortedBy { it.order }
         } catch (e: Exception) {
+            android.util.Log.e("AuraRepository", "Error: ", e)
             emptyList()
         }
     }
@@ -682,6 +685,7 @@ class AuraRepository {
         return try {
             client.postgrest["websites"].select().decodeList<com.example.data.models.Website>()
         } catch (e: Exception) {
+            android.util.Log.e("AuraRepository", "Error: ", e)
             emptyList()
         }
     }
@@ -726,6 +730,7 @@ class AuraRepository {
             }.decodeList<Note>()
             notes.sortedByDescending { it.createdAt }
         } catch (e: Exception) {
+            android.util.Log.e("AuraRepository", "Error: ", e)
             emptyList()
         }
     }
@@ -757,6 +762,7 @@ class AuraRepository {
             }.decodeList<FlashcardDeck>()
             decks.sortedByDescending { it.createdAt }
         } catch (e: Exception) {
+            android.util.Log.e("AuraRepository", "Error: ", e)
             emptyList()
         }
     }
@@ -794,6 +800,7 @@ class AuraRepository {
             }.decodeList<Flashcard>()
             cards.sortedBy { it.createdAt }
         } catch (e: Exception) {
+            android.util.Log.e("AuraRepository", "Error: ", e)
             emptyList()
         }
     }
@@ -824,6 +831,7 @@ class AuraRepository {
                 filter { eq("userId", userId) }
             }.decodeList<VideoProgress>()
         } catch (e: Exception) {
+            android.util.Log.e("AuraRepository", "Error: ", e)
             emptyList()
         }
     }
@@ -860,6 +868,7 @@ class AuraRepository {
                 filter { eq("userId", userId) }
             }.decodeList<BookProgress>()
         } catch (e: Exception) {
+            android.util.Log.e("AuraRepository", "Error: ", e)
             emptyList()
         }
     }
@@ -902,6 +911,7 @@ class AuraRepository {
             }
             query.decodeList<com.example.data.models.Quiz>().sortedByDescending { it.createdAt }
         } catch (e: Exception) {
+            android.util.Log.e("AuraRepository", "Error: ", e)
             emptyList()
         }
     }
@@ -932,6 +942,7 @@ class AuraRepository {
                 filter { eq("quizId", quizId) }
             }.decodeList<com.example.data.models.QuizQuestion>().sortedBy { it.order }
         } catch (e: Exception) {
+            android.util.Log.e("AuraRepository", "Error: ", e)
             emptyList()
         }
     }
@@ -1037,6 +1048,7 @@ class AuraRepository {
                 )
             }
         } catch (e: Exception) {
+            android.util.Log.e("AuraRepository", "Error: ", e)
             emptyList()
         }
     }
@@ -1047,6 +1059,7 @@ class AuraRepository {
                 filter { eq("userId", userId) }
             }.decodeList<com.example.data.models.QuizResult>().sortedByDescending { it.createdAt }
         } catch (e: Exception) {
+            android.util.Log.e("AuraRepository", "Error: ", e)
             emptyList()
         }
     }
@@ -1055,6 +1068,7 @@ class AuraRepository {
         return try {
             client.postgrest["exam_boards"].select().decodeList<com.example.ui.profile.BoardResult>()
         } catch (e: Exception) {
+            android.util.Log.e("AuraRepository", "Error: ", e)
             emptyList()
         }
     }
@@ -1199,6 +1213,7 @@ class AuraRepository {
                 order("createdAt", io.github.jan.supabase.postgrest.query.Order.DESCENDING)
             }.decodeList<com.example.data.models.Feedback>()
         } catch (e: Exception) {
+            android.util.Log.e("AuraRepository", "Error: ", e)
             emptyList()
         }
     }

@@ -9,6 +9,7 @@ import com.example.ai.model.AiConfig
 import com.example.ai.model.LlmInferenceEngine
 import com.example.ai.tools.AuraToolExecutor
 import com.example.ai.tools.AuraToolRegistry
+import com.example.ai.tools.AuraToolValidator
 import com.example.ai.tools.ToolResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +23,7 @@ class AuraAiViewModel(
     private val memoryDao: AiMemoryDao,
     private val llmEngine: LlmInferenceEngine,
     private val toolRegistry: AuraToolRegistry,
+    private val toolValidator: AuraToolValidator,
     private val toolExecutor: AuraToolExecutor
 ) : ViewModel() {
 
@@ -162,6 +164,19 @@ class AuraAiViewModel(
             return
         }
 
+        val validationResult = toolValidator.validate(toolName, parameters)
+        if (validationResult is AuraToolValidator.ValidationResult.Invalid) {
+            val errorMsg = ChatMessageEntity(
+                id = UUID.randomUUID().toString(),
+                conversationId = conversationId,
+                role = "model",
+                content = "Tool Validation Failed: ${validationResult.reason}",
+                timestamp = System.currentTimeMillis()
+            )
+            memoryDao.insertMessage(errorMsg)
+            return
+        }
+
         val toolMsg = ChatMessageEntity(
             id = UUID.randomUUID().toString(),
             conversationId = conversationId,
@@ -226,6 +241,20 @@ class AuraAiViewModel(
                     val toolName = json.getString("tool")
                     val parameters = json.optJSONObject("parameters") ?: JSONObject()
                     
+                    // Validate tool
+                    val validationResult = toolValidator.validate(toolName, parameters)
+                    if (validationResult is AuraToolValidator.ValidationResult.Invalid) {
+                        val errorMsg = ChatMessageEntity(
+                            id = UUID.randomUUID().toString(),
+                            conversationId = conversationId,
+                            role = "model",
+                            content = "Tool Validation Failed: ${validationResult.reason}",
+                            timestamp = System.currentTimeMillis()
+                        )
+                        memoryDao.insertMessage(errorMsg)
+                        return
+                    }
+
                     // Add tool execution visual indicator message
                     val toolMsg = ChatMessageEntity(
                         id = UUID.randomUUID().toString(),
