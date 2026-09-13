@@ -5,8 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ai.memory.AiMemoryDao
 import com.example.ai.memory.ChatMessageEntity
-import com.example.ai.model.AiConfig
-import com.example.ai.model.LlmInferenceEngine
 import com.example.ai.tools.AuraToolExecutor
 import com.example.ai.tools.AuraToolRegistry
 import com.example.ai.tools.AuraToolValidator
@@ -26,7 +24,6 @@ import com.example.ai.vision.VisionRequest
 
 class AuraAiViewModel(
     private val memoryDao: AiMemoryDao,
-    private val llmEngine: LlmInferenceEngine,
     private val toolRegistry: AuraToolRegistry,
     private val toolValidator: AuraToolValidator,
     private val toolExecutor: AuraToolExecutor,
@@ -72,12 +69,8 @@ class AuraAiViewModel(
     }
     
     fun initializeEngine(context: Context) {
-        try {
-            llmEngine.initialize(context, AiConfig.MODEL_FILE_NAME)
-            _engineError.value = null
-        } catch (e: Exception) {
-            _engineError.value = e.message
-        }
+        // Cloud AI does not need local initialization
+        _engineError.value = null
     }
 
     fun sendMessage(text: String) {
@@ -107,79 +100,37 @@ class AuraAiViewModel(
                 return@launch
             }
 
-            if (imageUri != null) {
-                try {
-                    val visionReq = VisionRequest(text, imageUri)
-                    val response = visionRepository.analyze(visionReq, conversationId)
-                    
-                    if (response.success) {
+            try {
+                // Construct prompt with tools and system prompt
+                val promptText = if (text.isNotBlank() || imageUri == null) buildPrompt(text) else buildPrompt("[Image attached]")
+                
+                // If there's an image, or just text, we send it to the cloud AI provider
+                val visionReq = VisionRequest(promptText, imageUri)
+                val response = visionRepository.analyze(visionReq, conversationId)
+                
+                if (response.success) {
+                    if (imageUri != null) {
                         clearSelectedImage()
-                        val modelMessage = ChatMessageEntity(
-                            id = UUID.randomUUID().toString(),
-                            conversationId = conversationId,
-                            role = "model",
-                            content = response.answer ?: "I analyzed the image.",
-                            timestamp = System.currentTimeMillis()
-                        )
-                        memoryDao.insertMessage(modelMessage)
-                    } else {
-                        val errorMsg = ChatMessageEntity(
-                            id = UUID.randomUUID().toString(),
-                            conversationId = conversationId,
-                            role = "model",
-                            content = "Error: ${response.error ?: "Unknown Vision AI Error"}",
-                            timestamp = System.currentTimeMillis()
-                        )
-                        memoryDao.insertMessage(errorMsg)
                     }
-                } catch (e: Exception) {
+                    val answerText = response.answer ?: "I processed your request."
+                    // Check if the response contains a tool call and handle it
+                    handleModelResponse(answerText)
+                } else {
                     val errorMsg = ChatMessageEntity(
                         id = UUID.randomUUID().toString(),
                         conversationId = conversationId,
                         role = "model",
-                        content = "Error during vision inference: ${e.message}",
+                        content = "Error: ${response.error ?: "Unknown AI Error"}",
                         timestamp = System.currentTimeMillis()
                     )
                     memoryDao.insertMessage(errorMsg)
-                } finally {
-                    _isTyping.value = false
                 }
-                return@launch
-            }
-
-            if (_engineError.value != null && imageUri == null) {
-                // If model is missing, emit error message directly to chat
-                val errorMsg = ChatMessageEntity(
-                    id = UUID.randomUUID().toString(),
-                    conversationId = conversationId,
-                    role = "model",
-                    content = "System Error: ${_engineError.value}",
-                    timestamp = System.currentTimeMillis()
-                )
-                memoryDao.insertMessage(errorMsg)
-                _isTyping.value = false
-                return@launch
-            }
-
-            try {
-                // Construct prompt
-                val prompt = buildPrompt(text)
-                
-                // Get inference response
-                var fullResponse = ""
-                llmEngine.generateResponse(prompt).collect { chunk ->
-                    fullResponse += chunk
-                }
-
-                // Parse and handle response (Check if tool call)
-                handleModelResponse(fullResponse)
-                
             } catch (e: Exception) {
                 val errorMsg = ChatMessageEntity(
                     id = UUID.randomUUID().toString(),
                     conversationId = conversationId,
                     role = "model",
-                    content = "Error during inference: ${e.message}",
+                    content = "Error during AI inference: ${e.message}",
                     timestamp = System.currentTimeMillis()
                 )
                 memoryDao.insertMessage(errorMsg)
@@ -289,7 +240,7 @@ class AuraAiViewModel(
 
     private fun buildPrompt(userText: String): String {
         val toolsPrompt = toolRegistry.getToolPrompts()
-        return "${AiConfig.SYSTEM_PROMPT}\n\nAvailable Tools:\n$toolsPrompt\n\nUser: $userText\nAura:"
+        return "${com.example.ai.model.AiConfig.SYSTEM_PROMPT}\n\nAvailable Tools:\n$toolsPrompt\n\nUser: $userText\nAura:"
     }
 
     private suspend fun handleModelResponse(response: String) {
@@ -389,6 +340,5 @@ class AuraAiViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        llmEngine.close()
     }
 }

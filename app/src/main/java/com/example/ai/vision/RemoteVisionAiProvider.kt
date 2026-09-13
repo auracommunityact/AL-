@@ -1,5 +1,6 @@
 package com.example.ai.vision
 
+import io.github.jan.supabase.auth.auth
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -32,21 +33,23 @@ class RemoteVisionAiProvider(
                 return@withContext VisionResponse(false, null, "Vision API URL is not configured.")
             }
             
-            if (request.imageUri == null) {
-                return@withContext VisionResponse(false, null, "No image provided.")
+            if (request.text.isNullOrBlank() && request.imageUri == null) {
+                return@withContext VisionResponse(false, null, "No input provided.")
             }
-
-            val file = getResizedImageFile(request.imageUri)
-                ?: return@withContext VisionResponse(false, null, "Failed to process image.")
 
             val requestBodyBuilder = MultipartBody.Builder().setType(MultipartBody.FORM)
             
-            val mediaType = "image/jpeg".toMediaTypeOrNull()
-            requestBodyBuilder.addFormDataPart(
-                "image", 
-                file.name,
-                file.asRequestBody(mediaType)
-            )
+            if (request.imageUri != null) {
+                val file = getResizedImageFile(request.imageUri)
+                    ?: return@withContext VisionResponse(false, null, "Failed to process image.")
+                
+                val mediaType = "image/jpeg".toMediaTypeOrNull()
+                requestBodyBuilder.addFormDataPart(
+                    "image", 
+                    file.name,
+                    file.asRequestBody(mediaType)
+                )
+            }
 
             if (!request.text.isNullOrBlank()) {
                 requestBodyBuilder.addFormDataPart("message", request.text)
@@ -58,15 +61,25 @@ class RemoteVisionAiProvider(
                 requestBodyBuilder.addFormDataPart("conversation_id", conversationId)
             }
 
-            val requestHttp = okhttp3.Request.Builder()
+            val requestHttpBuilder = okhttp3.Request.Builder()
                 .url(apiUrl)
                 .post(requestBodyBuilder.build())
-                .build()
+
+            // Add Supabase Auth token if available
+            val token = com.example.data.supabase.SupabaseService.client.auth.currentAccessTokenOrNull()
+            if (token != null) {
+                requestHttpBuilder.addHeader("Authorization", "Bearer $token")
+            }
+
+            val requestHttp = requestHttpBuilder.build()
 
             val response = httpClient.newCall(requestHttp).execute()
             val responseBody = response.body?.string()
 
-            file.delete() // Clean up temp file
+            // Clean up temp file if we created one
+            if (request.imageUri != null) {
+                File(context.cacheDir, "vision_upload_temp.jpg").delete()
+            }
 
             if (response.isSuccessful && responseBody != null) {
                 val json = JSONObject(responseBody)

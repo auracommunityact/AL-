@@ -91,7 +91,7 @@ android {
 dependencies {
     implementation(libs.okhttp)
 
-    implementation(libs.mediapipe.tasks.genai)
+    // implementation(libs.mediapipe.tasks.genai)
 
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.core.ktx)
