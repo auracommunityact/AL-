@@ -4,6 +4,7 @@ import android.content.Context
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.io.File
+import com.google.mediapipe.tasks.genai.llminference.LlmInference
 
 interface LlmInferenceEngine {
     fun initialize(context: Context, modelPath: String)
@@ -13,12 +14,12 @@ interface LlmInferenceEngine {
 
 /**
  * Integration point for LiteRT-LM (MediaPipe LLM Inference API).
- * This class abstracts the initialization and inference of the on-device Gemma 3n model.
+ * This class abstracts the initialization and inference of the on-device Gemma 2B model.
  */
 class LiteRtLlmEngine : LlmInferenceEngine {
     
     private var isInitialized = false
-    // private var llmInference: LlmInference? = null // MediaPipe integration
+    private var llmInference: LlmInference? = null
 
     override fun initialize(context: Context, modelPath: String) {
         val modelFile = File(context.filesDir, modelPath)
@@ -29,40 +30,28 @@ class LiteRtLlmEngine : LlmInferenceEngine {
             throw IllegalStateException("Model file not found at ${modelFile.absolutePath}. Please download the ${AiConfig.MODEL_NAME} model to enable offline AI.")
         }
         
-        /* 
-         * ACTUAL MEDIAPIPE IMPLEMENTATION:
-         * val options = LlmInference.LlmInferenceOptions.builder()
-         *     .setModelPath(modelFile.absolutePath)
-         *     .setMaxTokens(AiConfig.MAX_TOKENS)
-         *     .setTemperature(AiConfig.TEMPERATURE)
-         *     .build()
-         * llmInference = LlmInference.createFromOptions(context, options)
-         */
+        val options = LlmInference.LlmInferenceOptions.builder()
+            .setModelPath(modelFile.absolutePath)
+            .setMaxTokens(AiConfig.MAX_TOKENS)
+            .setTemperature(AiConfig.TEMPERATURE)
+            .build()
+        llmInference = LlmInference.createFromOptions(context, options)
+        
         isInitialized = true
     }
 
     override suspend fun generateResponse(prompt: String): Flow<String> = flow {
-        if (!isInitialized) {
+        if (!isInitialized || llmInference == null) {
             throw IllegalStateException("LiteRT LLM Engine is not initialized.")
         }
         
-        /* 
-         * ACTUAL MEDIAPIPE IMPLEMENTATION:
-         * val result = llmInference?.generateResponse(prompt)
-         * emit(result ?: "")
-         */
-         
-         // Throwing here as per guidelines to not simulate fake functionality if the engine
-         // isn't actually executing a real model.
-         throw UnsupportedOperationException("LiteRT inference requires physical model execution.")
+        val result = llmInference?.generateResponse(prompt)
+        emit(result ?: "")
     }
 
     override fun close() {
-        /*
-         * ACTUAL MEDIAPIPE IMPLEMENTATION:
-         * llmInference?.close()
-         * llmInference = null
-         */
+        llmInference?.close()
+        llmInference = null
         isInitialized = false
     }
 }

@@ -3,91 +3,183 @@ import re
 with open("app/src/main/java/com/example/ai/chat/AuraAiViewModel.kt", "r") as f:
     content = f.read()
 
-# Add import
-content = content.replace("import com.example.ai.tools.AuraToolRegistry", "import com.example.ai.tools.AuraToolRegistry\nimport com.example.ai.tools.AuraToolValidator")
+# I need to update sendMessage to use visionRepository
+# First, let's replace the whole sendMessage(text: String, imageUri: Uri?) function block
 
-# Update constructor
-content = content.replace(
-    "class AuraAiViewModel(\n    private val memoryDao: AiMemoryDao,\n    private val llmEngine: LlmInferenceEngine,\n    private val toolRegistry: AuraToolRegistry,\n    private val toolExecutor: AuraToolExecutor\n) : ViewModel()",
-    "class AuraAiViewModel(\n    private val memoryDao: AiMemoryDao,\n    private val llmEngine: LlmInferenceEngine,\n    private val toolRegistry: AuraToolRegistry,\n    private val toolValidator: AuraToolValidator,\n    private val toolExecutor: AuraToolExecutor\n) : ViewModel()"
-)
+old_block = """    fun sendMessage(text: String, imageUri: Uri?) {
+        if (text.isBlank() && imageUri == null) return
 
-# Update handleSlashCommand
-slash_replacement = """        val validationResult = toolValidator.validate(toolName, parameters)
-        if (validationResult is AuraToolValidator.ValidationResult.Invalid) {
-            val errorMsg = ChatMessageEntity(
-                id = UUID.randomUUID().toString(),
-                conversationId = conversationId,
-                role = "model",
-                content = "Tool Validation Failed: ${validationResult.reason}",
-                timestamp = System.currentTimeMillis()
-            )
-            memoryDao.insertMessage(errorMsg)
-            return
+        val userMessage = ChatMessageEntity(
+            id = UUID.randomUUID().toString(),
+            conversationId = conversationId,
+            role = "user",
+            content = if (text.isNotBlank()) text else "[Image attachment]",
+            timestamp = System.currentTimeMillis(),
+            imageUri = imageUri?.toString()
+        )
+
+        viewModelScope.launch(Dispatchers.IO) {
+            memoryDao.insertMessage(userMessage)
+            _isTyping.value = true
+
+            // Slash Command Parser for direct tool execution
+            if (text.isNotBlank() && text.startsWith("/")) {
+                handleSlashCommand(text.substring(1).trim())
+                _isTyping.value = false
+                return@launch
+            }
+
+            if (_engineError.value != null) {
+                // If model is missing, emit error message directly to chat
+                val errorMsg = ChatMessageEntity(
+                    id = UUID.randomUUID().toString(),
+                    conversationId = conversationId,
+                    role = "model",
+                    content = "System Error: ${_engineError.value}",
+                    timestamp = System.currentTimeMillis()
+                )
+                memoryDao.insertMessage(errorMsg)
+                _isTyping.value = false
+                return@launch
+            }
+
+            try {
+                // Construct prompt
+                val prompt = buildPrompt(text)
+                
+                // Get inference response
+                var fullResponse = ""
+                llmEngine.generateResponse(prompt).collect { chunk ->
+                    fullResponse += chunk
+                }
+
+                // Parse and handle response (Check if tool call)
+                handleModelResponse(fullResponse)
+                
+            } catch (e: Exception) {
+                val errorMsg = ChatMessageEntity(
+                    id = UUID.randomUUID().toString(),
+                    conversationId = conversationId,
+                    role = "model",
+                    content = "Error during inference: ${e.message}",
+                    timestamp = System.currentTimeMillis()
+                )
+                memoryDao.insertMessage(errorMsg)
+            } finally {
+                _isTyping.value = false
+            }
         }
+    }"""
 
-        val toolMsg = ChatMessageEntity(
+new_block = """    fun sendMessage(text: String, imageUri: Uri?) {
+        if (text.isBlank() && imageUri == null) return
+
+        val userMessage = ChatMessageEntity(
             id = UUID.randomUUID().toString(),
             conversationId = conversationId,
-            role = "tool",
-            content = "Executing: $toolName...",
-            timestamp = System.currentTimeMillis()
+            role = "user",
+            content = if (text.isNotBlank()) text else "[Image attachment]",
+            timestamp = System.currentTimeMillis(),
+            imageUri = imageUri?.toString()
         )
-        memoryDao.insertMessage(toolMsg)
 
-        val result = toolExecutor.execute(toolName, parameters)"""
+        viewModelScope.launch(Dispatchers.IO) {
+            memoryDao.insertMessage(userMessage)
+            _isTyping.value = true
 
-content = content.replace("""        val toolMsg = ChatMessageEntity(
-            id = UUID.randomUUID().toString(),
-            conversationId = conversationId,
-            role = "tool",
-            content = "Executing: $toolName...",
-            timestamp = System.currentTimeMillis()
-        )
-        memoryDao.insertMessage(toolMsg)
+            // Slash Command Parser for direct tool execution
+            if (text.isNotBlank() && text.startsWith("/")) {
+                handleSlashCommand(text.substring(1).trim())
+                _isTyping.value = false
+                return@launch
+            }
 
-        val result = toolExecutor.execute(toolName, parameters)""", slash_replacement)
-
-# Update handleModelResponse
-model_replacement = """                    // Validate tool
-                    val validationResult = toolValidator.validate(toolName, parameters)
-                    if (validationResult is AuraToolValidator.ValidationResult.Invalid) {
+            if (imageUri != null) {
+                try {
+                    val visionReq = VisionRequest(text, imageUri)
+                    val response = visionRepository.analyze(visionReq, conversationId)
+                    
+                    if (response.success) {
+                        clearSelectedImage()
+                        val modelMessage = ChatMessageEntity(
+                            id = UUID.randomUUID().toString(),
+                            conversationId = conversationId,
+                            role = "model",
+                            content = response.answer ?: "I analyzed the image.",
+                            timestamp = System.currentTimeMillis()
+                        )
+                        memoryDao.insertMessage(modelMessage)
+                    } else {
                         val errorMsg = ChatMessageEntity(
                             id = UUID.randomUUID().toString(),
                             conversationId = conversationId,
                             role = "model",
-                            content = "Tool Validation Failed: ${validationResult.reason}",
+                            content = "Error: ${response.error ?: "Unknown Vision AI Error"}",
                             timestamp = System.currentTimeMillis()
                         )
                         memoryDao.insertMessage(errorMsg)
-                        return
                     }
-
-                    // Add tool execution visual indicator message
-                    val toolMsg = ChatMessageEntity(
+                } catch (e: Exception) {
+                    val errorMsg = ChatMessageEntity(
                         id = UUID.randomUUID().toString(),
                         conversationId = conversationId,
-                        role = "tool",
-                        content = "Executing: $toolName...",
+                        role = "model",
+                        content = "Error during vision inference: ${e.message}",
                         timestamp = System.currentTimeMillis()
                     )
-                    memoryDao.insertMessage(toolMsg)
+                    memoryDao.insertMessage(errorMsg)
+                } finally {
+                    _isTyping.value = false
+                }
+                return@launch
+            }
 
-                    // Execute tool
-                    val result = toolExecutor.execute(toolName, parameters)"""
+            if (_engineError.value != null) {
+                // If model is missing, emit error message directly to chat
+                val errorMsg = ChatMessageEntity(
+                    id = UUID.randomUUID().toString(),
+                    conversationId = conversationId,
+                    role = "model",
+                    content = "System Error: ${_engineError.value}",
+                    timestamp = System.currentTimeMillis()
+                )
+                memoryDao.insertMessage(errorMsg)
+                _isTyping.value = false
+                return@launch
+            }
 
-content = content.replace("""                    // Add tool execution visual indicator message
-                    val toolMsg = ChatMessageEntity(
-                        id = UUID.randomUUID().toString(),
-                        conversationId = conversationId,
-                        role = "tool",
-                        content = "Executing: $toolName...",
-                        timestamp = System.currentTimeMillis()
-                    )
-                    memoryDao.insertMessage(toolMsg)
+            try {
+                // Construct prompt
+                val prompt = buildPrompt(text)
+                
+                // Get inference response
+                var fullResponse = ""
+                llmEngine.generateResponse(prompt).collect { chunk ->
+                    fullResponse += chunk
+                }
 
-                    // Execute tool
-                    val result = toolExecutor.execute(toolName, parameters)""", model_replacement)
+                // Parse and handle response (Check if tool call)
+                handleModelResponse(fullResponse)
+                
+            } catch (e: Exception) {
+                val errorMsg = ChatMessageEntity(
+                    id = UUID.randomUUID().toString(),
+                    conversationId = conversationId,
+                    role = "model",
+                    content = "Error during inference: ${e.message}",
+                    timestamp = System.currentTimeMillis()
+                )
+                memoryDao.insertMessage(errorMsg)
+            } finally {
+                _isTyping.value = false
+            }
+        }
+    }"""
+
+if old_block in content:
+    content = content.replace(old_block, new_block)
+else:
+    print("Old block not found!")
 
 with open("app/src/main/java/com/example/ai/chat/AuraAiViewModel.kt", "w") as f:
     f.write(content)

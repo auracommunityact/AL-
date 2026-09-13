@@ -27,6 +27,8 @@ android {
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"$supabaseAnonKey\"")
         buildConfigField("String", "SUPABASE_KEY", "\"$supabaseAnonKey\"")
         buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
+        val visionApiUrl = System.getenv("AURA_VISION_API_URL") ?: "https://aura-vision-api-placeholder.com/v1/vision/chat"
+        buildConfigField("String", "AURA_VISION_API_URL", "\"$visionApiUrl\"")
     }
 
     buildFeatures {
@@ -87,6 +89,10 @@ android {
 }
 
 dependencies {
+    implementation(libs.okhttp)
+
+    implementation(libs.mediapipe.tasks.genai)
+
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

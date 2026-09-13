@@ -1,8 +1,8 @@
 package com.example.ai.model
 
 object AiConfig {
-    const val MODEL_NAME = "Gemma 3n E4B-it"
-    const val MODEL_FILE_NAME = "gemma-3n-it-cpu-int4.task"
+    const val MODEL_NAME = "Gemma 1.1 2B IT"
+    const val MODEL_FILE_NAME = "gemma-1.1-2b-it-cpu-int4.bin"
     const val MAX_TOKENS = 1024
     const val TEMPERATURE = 0.7f
     const val SYSTEM_PROMPT = """

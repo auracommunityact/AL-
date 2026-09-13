@@ -373,7 +373,7 @@ fun AuraLearningApp(themeViewModel: ThemeViewModel? = null, initialDeepLink: Str
         composable("result_analysis") { com.example.ui.study.ResultAnalysisScreen(rootNavController) }
         composable("website_reader") { com.example.ui.study.websitereader.WebsiteReaderScreen(rootNavController) }
         composable("progress") { com.example.ui.study.ProgressTrackerScreen(rootNavController) }
-        composable("local_scheduler") { com.example.ui.study.LocalStudyScheduleScreen(rootNavController) }
+        
         composable("weekly_report") { com.example.ui.study.WeeklyReportScreen(rootNavController) }
         composable(
             "ai_chat?prompt={prompt}",
@@ -650,7 +650,7 @@ fun MainScreen(
                     com.example.ui.profile.ProfileDetailsScreen(rootNavController, authViewModel, null)
                 }
                 composable(Screen.Profile.route) { ProfileScreen(navController, authViewModel, rootNavController, themeViewModel) }
-                composable(Screen.AuraAi.route) { com.example.ui.ai.LocalAiChatScreen(navController, rootNavController) }
+                
             }
         }
     }

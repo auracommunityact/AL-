@@ -8,6 +8,9 @@ import com.example.ai.tools.AuraToolExecutor
 import com.example.ai.tools.AuraToolRegistry
 import com.example.ai.tools.AuraToolValidator
 import com.example.data.local.PlannerDatabase
+import com.example.ai.vision.VisionProviderFactory
+import com.example.ai.vision.VisionAiRepository
+
 
 class AuraAiViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -18,9 +21,11 @@ class AuraAiViewModelFactory(private val context: Context) : ViewModelProvider.F
             val toolRegistry = AuraToolRegistry()
             val toolValidator = AuraToolValidator(toolRegistry)
             val toolExecutor = AuraToolExecutor(context)
+            val visionProvider = VisionProviderFactory.createRemoteProvider(context)
+            val visionRepository = VisionAiRepository(visionProvider)
             
             @Suppress("UNCHECKED_CAST")
-            return AuraAiViewModel(memoryDao, engine, toolRegistry, toolValidator, toolExecutor) as T
+            return AuraAiViewModel(memoryDao, engine, toolRegistry, toolValidator, toolExecutor, visionRepository, context) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

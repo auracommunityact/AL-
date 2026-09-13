@@ -19,12 +19,19 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.util.UUID
 
+import android.net.Uri
+import com.example.ai.vision.VisionAiRepository
+import com.example.ai.vision.VisionRequest
+
+
 class AuraAiViewModel(
     private val memoryDao: AiMemoryDao,
     private val llmEngine: LlmInferenceEngine,
     private val toolRegistry: AuraToolRegistry,
     private val toolValidator: AuraToolValidator,
-    private val toolExecutor: AuraToolExecutor
+    private val toolExecutor: AuraToolExecutor,
+    private val visionRepository: VisionAiRepository,
+    private val context: Context
 ) : ViewModel() {
 
     private val conversationId = "default_conversation"
@@ -40,6 +47,17 @@ class AuraAiViewModel(
 
     private val _engineError = MutableStateFlow<String?>(null)
     val engineError: StateFlow<String?> = _engineError.asStateFlow()
+
+    private val _selectedImageUri = MutableStateFlow<Uri?>(null)
+    val selectedImageUri: StateFlow<Uri?> = _selectedImageUri.asStateFlow()
+
+    fun selectImage(uri: Uri) {
+        _selectedImageUri.value = uri
+    }
+
+    fun clearSelectedImage() {
+        _selectedImageUri.value = null
+    }
 
     init {
         loadHistory()
@@ -63,14 +81,19 @@ class AuraAiViewModel(
     }
 
     fun sendMessage(text: String) {
-        if (text.isBlank()) return
+        sendMessage(text, _selectedImageUri.value)
+    }
+
+    fun sendMessage(text: String, imageUri: Uri?) {
+        if (text.isBlank() && imageUri == null) return
 
         val userMessage = ChatMessageEntity(
             id = UUID.randomUUID().toString(),
             conversationId = conversationId,
             role = "user",
-            content = text,
-            timestamp = System.currentTimeMillis()
+            content = if (text.isNotBlank()) text else "[Image attachment]",
+            timestamp = System.currentTimeMillis(),
+            imageUri = imageUri?.toString()
         )
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -78,13 +101,53 @@ class AuraAiViewModel(
             _isTyping.value = true
 
             // Slash Command Parser for direct tool execution
-            if (text.startsWith("/")) {
+            if (text.isNotBlank() && text.startsWith("/")) {
                 handleSlashCommand(text.substring(1).trim())
                 _isTyping.value = false
                 return@launch
             }
 
-            if (_engineError.value != null) {
+            if (imageUri != null) {
+                try {
+                    val visionReq = VisionRequest(text, imageUri)
+                    val response = visionRepository.analyze(visionReq, conversationId)
+                    
+                    if (response.success) {
+                        clearSelectedImage()
+                        val modelMessage = ChatMessageEntity(
+                            id = UUID.randomUUID().toString(),
+                            conversationId = conversationId,
+                            role = "model",
+                            content = response.answer ?: "I analyzed the image.",
+                            timestamp = System.currentTimeMillis()
+                        )
+                        memoryDao.insertMessage(modelMessage)
+                    } else {
+                        val errorMsg = ChatMessageEntity(
+                            id = UUID.randomUUID().toString(),
+                            conversationId = conversationId,
+                            role = "model",
+                            content = "Error: ${response.error ?: "Unknown Vision AI Error"}",
+                            timestamp = System.currentTimeMillis()
+                        )
+                        memoryDao.insertMessage(errorMsg)
+                    }
+                } catch (e: Exception) {
+                    val errorMsg = ChatMessageEntity(
+                        id = UUID.randomUUID().toString(),
+                        conversationId = conversationId,
+                        role = "model",
+                        content = "Error during vision inference: ${e.message}",
+                        timestamp = System.currentTimeMillis()
+                    )
+                    memoryDao.insertMessage(errorMsg)
+                } finally {
+                    _isTyping.value = false
+                }
+                return@launch
+            }
+
+            if (_engineError.value != null && imageUri == null) {
                 // If model is missing, emit error message directly to chat
                 val errorMsg = ChatMessageEntity(
                     id = UUID.randomUUID().toString(),
