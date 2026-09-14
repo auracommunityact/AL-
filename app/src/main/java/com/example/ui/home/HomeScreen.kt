@@ -70,7 +70,7 @@ fun HomeScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
             androidx.compose.material3.ExtendedFloatingActionButton(
-                onClick = { navController.navigate("aura_ai_chat") },
+                onClick = { rootNavController.navigate("aura_ai_chat") },
                 icon = { androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Default.AutoAwesome, "Aura AI") },
                 text = { androidx.compose.material3.Text("Aura AI") },
                 containerColor = MaterialTheme.colorScheme.primaryContainer,

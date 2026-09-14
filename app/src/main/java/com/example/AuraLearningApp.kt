@@ -375,6 +375,7 @@ fun AuraLearningApp(themeViewModel: ThemeViewModel? = null, initialDeepLink: Str
         composable("progress") { com.example.ui.study.ProgressTrackerScreen(rootNavController) }
         
         composable("weekly_report") { com.example.ui.study.WeeklyReportScreen(rootNavController) }
+        composable("aura_ai_chat") { com.example.ai.ui.AuraAiChatScreen(rootNavController) }
         composable(
             "ai_chat?prompt={prompt}",
             arguments = listOf(
@@ -605,7 +606,6 @@ fun MainScreen(
                 modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
             ) {
                 composable(Screen.Home.route) { HomeScreen(navController, authViewModel, rootNavController) }
-                composable("aura_ai_chat") { com.example.ai.ui.AuraAiChatScreen(navController) }
                 composable(
                     "global_search?query={query}",
                     arguments = listOf(androidx.navigation.navArgument("query") { defaultValue = "" })
@@ -617,7 +617,7 @@ fun MainScreen(
                 composable(Screen.QuestionPapers.route) { QuestionPaperListingScreen(navController) }
                 composable(Screen.Books.route) { BooksScreen(navController, authViewModel, rootNavController) }
                 composable("resources") { com.example.ui.home.ResourcesScreen(navController, rootNavController) }
-                composable(Screen.Chat.route) { com.example.ui.chat.ChatListScreen(navController) }
+                composable(Screen.Chat.route) { com.example.ui.chat.ChatListScreen(navController, rootNavController) }
                 composable(
                     "chat_room/{conversationId}",
                     arguments = listOf(androidx.navigation.navArgument("conversationId") { type = androidx.navigation.NavType.StringType })

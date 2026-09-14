@@ -37,6 +37,7 @@ import java.util.*
 @Composable
 fun ChatListScreen(
     navController: NavController,
+    rootNavController: NavController,
     viewModel: ChatViewModel = viewModel(factory = ViewModelFactory)
 ) {
     val conversations by viewModel.conversations.collectAsState()
@@ -223,7 +224,7 @@ fun ChatListScreen(
                 ) {
                     item {
                         AuraAiChatHeaderItem(
-                            onClick = { navController.navigate("aura_ai_chat") }
+                            onClick = { rootNavController.navigate("aura_ai_chat") }
                         )
                         HorizontalDivider(
                             modifier = Modifier.padding(horizontal = 16.dp),
