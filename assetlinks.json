@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.auracommunityact.auralearning",
+      "sha256_cert_fingerprints": [
+        "E8:9A:06:08:9E:7B:6D:94:68:ED:D2:93:E6:CD:5A:54:69:AC:BD:83:2F:34:BB:7C:62:F2:6C:A6:1E:1D:2D:B7"
+      ]
+    }
+  }
+]

@@ -1,0 +1,30 @@
+-- Create app_updates table
+CREATE TABLE IF NOT EXISTS public.app_updates (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    latest_version_name TEXT NOT NULL,
+    latest_version_code INTEGER NOT NULL,
+    minimum_supported_version_code INTEGER NOT NULL,
+    update_title TEXT NOT NULL,
+    update_message TEXT NOT NULL,
+    changelog TEXT,
+    download_url TEXT NOT NULL,
+    force_update BOOLEAN DEFAULT FALSE,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- Enable RLS
+ALTER TABLE public.app_updates ENABLE ROW LEVEL SECURITY;
+
+-- Allow read access to all authenticated users
+CREATE POLICY "Allow read access to app_updates" ON public.app_updates
+    FOR SELECT USING (true);
+
+-- Allow write access only to admins
+-- Assuming your users table has a 'role' column which determines admin status
+CREATE POLICY "Allow admin write access to app_updates" ON public.app_updates
+    FOR ALL
+    USING (
+        (SELECT role FROM public.users WHERE id = auth.uid()) = 'admin'
+    );
