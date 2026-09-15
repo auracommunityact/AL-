@@ -38,9 +38,9 @@ class MainActivity : ComponentActivity() {
             delay(1500) // Delay to ensure splash/UI is fully drawn
             
             try {
-                com.example.notifications.RealtimeNotificationService.start(this@MainActivity)
+                com.example.notifications.RealtimeNotificationManager.start(this@MainActivity)
             } catch (e: Throwable) {
-                android.util.Log.e("MainActivity", "RealtimeNotificationService start error", e)
+                android.util.Log.e("MainActivity", "RealtimeNotificationManager start error", e)
             }
             
             // AdsManager initialization requires Main thread for ProcessLifecycleOwner & UI operations
