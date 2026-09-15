@@ -77,8 +77,7 @@ val items = listOf(
     Screen.QuestionPapers,
     Screen.Videos,
     Screen.Books,
-    Screen.Profile,
-    Screen.Chat
+    Screen.Profile
 )
 
 @Composable

@@ -86,7 +86,7 @@ object RealtimeNotificationManager {
             notif.title,
             notif.description,
             notif.category,
-            notif.deepLink
+            notif.deep_link
         )
         
         // Notify the app that data changed

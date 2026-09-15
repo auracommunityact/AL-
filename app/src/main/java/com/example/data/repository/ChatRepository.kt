@@ -95,39 +95,47 @@ class ChatRepository {
     suspend fun getOrCreateConversation(otherUserId: String, otherUserName: String): String {
         val currentUserId = auth.currentUserOrNull()?.id ?: throw Exception("Not logged in")
         
-        // Find existing 1-on-1 conversation
-        // This is a bit simplified; real prod apps should use a more robust check
-        val currentMembers = postgrest["conversation_members"]
-            .select { filter { eq("userId", currentUserId) } }
-            .decodeList<ConversationMember>()
-            
-        val otherMembers = postgrest["conversation_members"]
-            .select { filter { eq("userId", otherUserId) } }
-            .decodeList<ConversationMember>()
-            
-        val commonConvoId = currentMembers.map { it.conversationId }
-            .intersect(otherMembers.map { it.conversationId }.toSet())
-            .firstOrNull()
-            
-        if (commonConvoId != null) return commonConvoId
+        // Create a unique chatRoomId by combining both user IDs
+        // Sorting them alphabetically ensures the ID is identical for both User A and User B
+        val chatRoomId = if (currentUserId < otherUserId) {
+            "${currentUserId}_${otherUserId}"
+        } else {
+            "${otherUserId}_${currentUserId}"
+        }
         
-        // Create new
-                val newConvo = Conversation(
-            name = otherUserName,
+        try {
+            val existing = getConversation(chatRoomId)
+            if (existing != null) {
+                // Ensure members exist
+                postgrest["conversation_members"].upsert(listOf(
+                    ConversationMember(conversationId = chatRoomId, userId = currentUserId),
+                    ConversationMember(conversationId = chatRoomId, userId = otherUserId)
+                ))
+                return chatRoomId
+            }
+        } catch (e: Exception) {
+            // Proceed to create
+        }
+        
+        // Create new conversation
+        val newConvo = Conversation(
+            id = chatRoomId,
+            name = otherUserName, // We can store the other username as a fallback
             lastMessageTime = System.currentTimeMillis()
         )
-        val insertedConvo = postgrest["conversations"]
-            .insert(getJsonWithoutId(newConvo)) { select() }
-            .decodeSingle<Conversation>()
+        
+        try {
+            postgrest["conversations"].insert(newConvo)
             
-        val realConvoId = insertedConvo.id
+            postgrest["conversation_members"].upsert(listOf(
+                ConversationMember(conversationId = chatRoomId, userId = currentUserId),
+                ConversationMember(conversationId = chatRoomId, userId = otherUserId)
+            ))
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
         
-        postgrest["conversation_members"].insert(getJsonListWithoutId(listOf(
-            ConversationMember(conversationId = realConvoId, userId = currentUserId),
-            ConversationMember(conversationId = realConvoId, userId = otherUserId)
-        )))
-        
-        return realConvoId
+        return chatRoomId
     }
     
     fun subscribeToMessages(conversationId: String): Flow<Message> = callbackFlow {

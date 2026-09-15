@@ -67,16 +67,7 @@ fun HomeScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        floatingActionButton = {
-            androidx.compose.material3.ExtendedFloatingActionButton(
-                onClick = { rootNavController.navigate("aura_ai_chat") },
-                icon = { androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Default.AutoAwesome, "Aura AI") },
-                text = { androidx.compose.material3.Text("Aura AI") },
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-        }
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             PullToRefreshBox(

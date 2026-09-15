@@ -127,7 +127,9 @@ fun UserSearchScreen(
                                 }
                             },
                             onClick = {
-                                navController.navigate("profile_details/${user.id}")
+                                viewModel.startConversation(user.id, user.name) { convoId ->
+                                    navController.navigate("chat_room/$convoId")
+                                }
                             }
                         )
                         if (index > 0 && index % 5 == 0) {
